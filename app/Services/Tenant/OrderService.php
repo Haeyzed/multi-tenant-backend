@@ -35,6 +35,7 @@ final class OrderService
         private WarehouseService $warehouses,
         private StockLedgerService $ledger,
         private ReservationService $reservations,
+        private PricingEngine $pricing,
     ) {}
 
     /**
@@ -102,7 +103,7 @@ final class OrderService
             }
 
             $status = OrderStatus::tryFrom($data['status'] ?? OrderStatus::Draft->value) ?? OrderStatus::Draft;
-            $lines = $this->buildLines($data['items'], $this->shouldEnforceStock($status));
+            $lines = $this->buildLines($data['items'], $this->shouldEnforceStock($status), $customer);
             $currency = $lines[0]['currency'];
             $subtotal = array_sum(array_column($lines, 'line_total'));
             $tax = $this->resolveTax($data['tax_id'] ?? null);
