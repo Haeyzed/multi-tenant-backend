@@ -28,11 +28,13 @@ final class CategoryService
                 AllowedFilter::partial('slug'),
                 AllowedFilter::exact('parent_id'),
                 AllowedFilter::exact('is_active'),
+                AllowedFilter::exact('is_featured'),
             )
             ->allowedSorts(
                 AllowedSort::field('id'),
                 AllowedSort::field('name'),
                 AllowedSort::field('slug'),
+                AllowedSort::field('sort_order'),
                 AllowedSort::field('created_at'),
             )
             ->defaultSort('-created_at')
@@ -41,7 +43,7 @@ final class CategoryService
     }
 
     /**
-     * @param  array{name: string, slug?: string, description?: string|null, parent_id?: int|null, is_active?: bool}  $data
+     * @param  array{name: string, slug?: string, description?: string|null, parent_id?: int|null, sort_order?: int, image_url?: string|null, banner_url?: string|null, meta_title?: string|null, meta_description?: string|null, is_active?: bool, is_featured?: bool}  $data
      */
     public function create(array $data): Category
     {
@@ -50,17 +52,23 @@ final class CategoryService
             'slug' => $data['slug'] ?? Str::slug($data['name']),
             'description' => $data['description'] ?? null,
             'parent_id' => $data['parent_id'] ?? null,
+            'sort_order' => $data['sort_order'] ?? 0,
+            'image_url' => $data['image_url'] ?? null,
+            'banner_url' => $data['banner_url'] ?? null,
+            'meta_title' => $data['meta_title'] ?? null,
+            'meta_description' => $data['meta_description'] ?? null,
             'is_active' => $data['is_active'] ?? true,
+            'is_featured' => $data['is_featured'] ?? false,
         ]);
     }
 
     public function find(Category $category): Category
     {
-        return $category->loadCount(['children', 'products']);
+        return $category->loadCount(['children', 'directProducts', 'products']);
     }
 
     /**
-     * @param  array{name?: string, slug?: string, description?: string|null, parent_id?: int|null, is_active?: bool}  $data
+     * @param  array{name?: string, slug?: string, description?: string|null, parent_id?: int|null, sort_order?: int, image_url?: string|null, banner_url?: string|null, meta_title?: string|null, meta_description?: string|null, is_active?: bool, is_featured?: bool}  $data
      */
     public function update(Category $category, array $data): Category
     {

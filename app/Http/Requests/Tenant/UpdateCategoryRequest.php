@@ -36,12 +36,18 @@ class UpdateCategoryRequest extends FormRequest
                 'exists:categories,id',
                 Rule::notIn([$category->getKey()]),
             ],
+            'sort_order' => ['sometimes', 'integer', 'min:0'],
+            'image_url' => ['nullable', 'string', 'max:2048'],
+            'banner_url' => ['nullable', 'string', 'max:2048'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string', 'max:512'],
             'is_active' => ['sometimes', 'boolean'],
+            'is_featured' => ['sometimes', 'boolean'],
         ];
     }
 
     /**
-     * @return array{name?: string, slug?: string, description?: string|null, parent_id?: int|null, is_active?: bool}
+     * @return array<string, mixed>
      */
     public function categoryData(): array
     {

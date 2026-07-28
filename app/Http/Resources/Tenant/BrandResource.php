@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Resources\Tenant;
+
+use App\Http\Resources\Resource;
+use App\Models\Tenant\Brand;
+use Dedoc\Scramble\Attributes\SchemaName;
+use Illuminate\Http\Request;
+
+/**
+ * @property-read Brand $resource
+ *
+ * @mixin Brand
+ */
+#[SchemaName('Brand')]
+class BrandResource extends Resource
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'logo_url' => $this->logo_url,
+            'banner_url' => $this->banner_url,
+            'meta_title' => $this->meta_title,
+            'meta_description' => $this->meta_description,
+            'is_active' => $this->is_active,
+            'products_count' => $this->when(isset($this->products_count), $this->products_count),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
+    }
+}

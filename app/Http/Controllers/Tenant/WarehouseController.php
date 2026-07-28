@@ -94,6 +94,8 @@ class WarehouseController extends Controller
             $request->integer('product_id'),
             $request->integer('quantity'),
             $request->boolean('absolute'),
+            $request->input('notes'),
+            $request->filled('reason_id') ? $request->integer('reason_id') : null,
         );
 
         return ApiResponse::success(

@@ -26,6 +26,8 @@ class AdjustWarehouseStockRequest extends FormRequest
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'quantity' => ['required', 'integer'],
             'absolute' => ['sometimes', 'boolean'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'reason_id' => ['nullable', 'integer', 'exists:stock_adjustment_reasons,id'],
         ];
     }
 }

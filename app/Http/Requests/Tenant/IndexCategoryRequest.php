@@ -26,6 +26,7 @@ class IndexCategoryRequest extends FormRequest
             'filter.slug' => ['sometimes', 'string'],
             'filter.parent_id' => ['sometimes', 'integer'],
             'filter.is_active' => ['sometimes', 'boolean'],
+            'filter.is_featured' => ['sometimes', 'boolean'],
             'sort' => ['sometimes', 'string'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];

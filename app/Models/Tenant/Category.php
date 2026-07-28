@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -22,15 +23,34 @@ use Illuminate\Support\Carbon;
  * @property string $slug
  * @property string|null $description
  * @property int|null $parent_id
+ * @property int $sort_order
+ * @property string|null $image_url
+ * @property string|null $banner_url
+ * @property string|null $meta_title
+ * @property string|null $meta_description
  * @property bool $is_active
+ * @property bool $is_featured
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property-read Category|null $parent
  * @property-read Collection<int, Category> $children
+ * @property-read Collection<int, Product> $directProducts
  * @property-read Collection<int, Product> $products
  */
-#[Fillable(['name', 'slug', 'description', 'parent_id', 'is_active'])]
+#[Fillable([
+    'name',
+    'slug',
+    'description',
+    'parent_id',
+    'sort_order',
+    'image_url',
+    'banner_url',
+    'meta_title',
+    'meta_description',
+    'is_active',
+    'is_featured',
+])]
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
@@ -43,7 +63,9 @@ class Category extends Model
     {
         return [
             'parent_id' => 'integer',
+            'sort_order' => 'integer',
             'is_active' => 'boolean',
+            'is_featured' => 'boolean',
         ];
     }
 
@@ -64,10 +86,25 @@ class Category extends Model
     }
 
     /**
+     * Products linked via legacy {@see Product::$category_id}.
+     *
      * @return HasMany<Product, $this>
      */
-    public function products(): HasMany
+    public function directProducts(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Products linked via the category_product pivot.
+     *
+     * @return BelongsToMany<Product, $this>
+     */
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class)
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderByPivot('sort_order');
     }
 }

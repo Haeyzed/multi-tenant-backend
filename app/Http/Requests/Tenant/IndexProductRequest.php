@@ -22,8 +22,13 @@ class IndexProductRequest extends FormRequest
         return [
             'filter' => ['sometimes', 'array'],
             'filter.id' => ['sometimes', 'integer'],
+            'filter.category_id' => ['sometimes', 'integer'],
+            'filter.type' => ['sometimes', 'string'],
+            'filter.status' => ['sometimes', 'string'],
+            'filter.brand_id' => ['sometimes', 'integer'],
             'filter.sku' => ['sometimes', 'string'],
             'filter.name' => ['sometimes', 'string'],
+            'filter.slug' => ['sometimes', 'string'],
             'filter.currency' => ['sometimes', 'string', 'size:3'],
             'filter.is_active' => ['sometimes', 'boolean'],
             'sort' => ['sometimes', 'string'],

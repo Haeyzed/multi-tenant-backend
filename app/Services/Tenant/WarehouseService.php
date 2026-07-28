@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
+use App\Enums\Tenant\StockMovementReason;
+use App\Enums\Tenant\WarehouseType;
 use App\Models\Tenant;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\Warehouse;
 use App\Models\Tenant\WarehouseStock;
 use App\Services\Billing\EntitlementEnforcer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -21,7 +22,10 @@ use Throwable;
  */
 final class WarehouseService
 {
-    public function __construct(private EntitlementEnforcer $entitlements) {}
+    public function __construct(
+        private EntitlementEnforcer $entitlements,
+        private StockLedgerService $ledger,
+    ) {}
 
     /**
      * @return LengthAwarePaginator<int, Warehouse>
@@ -31,6 +35,9 @@ final class WarehouseService
         return QueryBuilder::for(Warehouse::class)
             ->allowedFilters(
                 AllowedFilter::exact('id'),
+                AllowedFilter::exact('branch_id'),
+                AllowedFilter::exact('type'),
+                AllowedFilter::exact('manager_user_id'),
                 AllowedFilter::partial('name'),
                 AllowedFilter::partial('code'),
                 AllowedFilter::exact('is_default'),
@@ -48,7 +55,7 @@ final class WarehouseService
     }
 
     /**
-     * @param  array{name: string, code: string, address?: string|null, is_default?: bool, is_active?: bool}  $data
+     * @param  array{name: string, code: string, address?: string|null, branch_id?: int|null, manager_user_id?: int|null, type?: string, is_default?: bool, is_active?: bool}  $data
      */
     public function create(array $data): Warehouse
     {
@@ -59,7 +66,10 @@ final class WarehouseService
         $warehouse = Warehouse::query()->create([
             'name' => $data['name'],
             'code' => strtoupper($data['code']),
+            'type' => $data['type'] ?? WarehouseType::Standard,
             'address' => $data['address'] ?? null,
+            'branch_id' => $data['branch_id'] ?? null,
+            'manager_user_id' => $data['manager_user_id'] ?? null,
             'is_default' => $data['is_default'] ?? false,
             'is_active' => $data['is_active'] ?? true,
         ]);
@@ -73,11 +83,11 @@ final class WarehouseService
 
     public function find(Warehouse $warehouse): Warehouse
     {
-        return $warehouse->loadCount('stocks');
+        return $warehouse->loadCount(['stocks', 'zones', 'bins'])->loadMissing(['branch', 'manager']);
     }
 
     /**
-     * @param  array{name?: string, code?: string, address?: string|null, is_default?: bool, is_active?: bool}  $data
+     * @param  array{name?: string, code?: string, address?: string|null, branch_id?: int|null, manager_user_id?: int|null, type?: string, is_default?: bool, is_active?: bool}  $data
      */
     public function update(Warehouse $warehouse, array $data): Warehouse
     {
@@ -100,35 +110,48 @@ final class WarehouseService
     }
 
     /**
+     * Adjust stock through the immutable ledger (single source of truth).
+     *
      * @throws Throwable
      */
-    public function adjustStock(Warehouse $warehouse, int $productId, int $quantity, bool $absolute = false): WarehouseStock
-    {
-        return DB::transaction(function () use ($warehouse, $productId, $quantity, $absolute): WarehouseStock {
-            $stock = WarehouseStock::query()
-                ->where('warehouse_id', $warehouse->id)
-                ->where('product_id', $productId)
-                ->lockForUpdate()
-                ->first();
+    public function adjustStock(
+        Warehouse $warehouse,
+        int $productId,
+        int $quantity,
+        bool $absolute = false,
+        ?string $notes = null,
+        ?int $reasonId = null,
+    ): WarehouseStock {
+        /** @var Product $product */
+        $product = Product::query()->findOrFail($productId);
 
-            if ($stock === null) {
-                $stock = new WarehouseStock([
-                    'warehouse_id' => $warehouse->id,
-                    'product_id' => $productId,
-                    'quantity' => 0,
-                ]);
-            }
+        $delta = $quantity;
 
-            $stock->quantity = $absolute
-                ? max(0, $quantity)
-                : max(0, $stock->quantity + $quantity);
+        if ($absolute) {
+            $onHand = $this->ledger->onHand($warehouse, $product);
+            $delta = max(0, $quantity) - $onHand;
+        }
 
-            $stock->save();
+        $ledgerNotes = $notes ?? 'Manual warehouse stock adjustment';
 
-            $this->syncProductStockQuantity($productId);
+        if ($reasonId !== null) {
+            $ledgerNotes = trim($ledgerNotes.' [reason_id='.$reasonId.']');
+        }
 
-            return $stock->refresh();
-        });
+        if ($delta !== 0) {
+            $this->ledger->move(
+                warehouse: $warehouse,
+                product: $product,
+                quantityDelta: $delta,
+                reason: StockMovementReason::Adjustment,
+                notes: $ledgerNotes,
+            );
+        }
+
+        return WarehouseStock::query()
+            ->where('warehouse_id', $warehouse->id)
+            ->where('product_id', $productId)
+            ->firstOrFail();
     }
 
     /**
@@ -158,24 +181,5 @@ final class WarehouseService
             ->whereKeyNot($warehouse->id)
             ->where('is_default', true)
             ->update(['is_default' => false]);
-    }
-
-    private function syncProductStockQuantity(int $productId): void
-    {
-        $hasWarehouseStocks = WarehouseStock::query()
-            ->where('product_id', $productId)
-            ->exists();
-
-        if (! $hasWarehouseStocks) {
-            return;
-        }
-
-        $sum = (int) WarehouseStock::query()
-            ->where('product_id', $productId)
-            ->sum('quantity');
-
-        Product::query()
-            ->whereKey($productId)
-            ->update(['stock_quantity' => $sum]);
     }
 }

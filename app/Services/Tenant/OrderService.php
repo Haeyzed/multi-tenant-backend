@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Tenant;
 
 use App\Enums\Tenant\OrderStatus;
+use App\Enums\Tenant\StockMovementReason;
 use App\Events\Tenant\Erp\OrderConfirmed;
 use App\Models\Tenant;
 use App\Models\Tenant\Customer;
@@ -12,7 +13,6 @@ use App\Models\Tenant\Order;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\Tax;
 use App\Models\Tenant\Warehouse;
-use App\Models\Tenant\WarehouseStock;
 use App\Services\Billing\EntitlementEnforcer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +33,8 @@ final class OrderService
         private SalesInvoiceService $salesInvoices,
         private EntitlementEnforcer $entitlements,
         private WarehouseService $warehouses,
+        private StockLedgerService $ledger,
+        private ReservationService $reservations,
     ) {}
 
     /**
@@ -138,6 +140,10 @@ final class OrderService
 
             $order = $order->refresh()->load(['customer', 'items', 'salesInvoice', 'taxRate', 'warehouse']);
 
+            if ($status === OrderStatus::Pending && $order->warehouse_id !== null) {
+                $this->reserveOrderStock($order);
+            }
+
             if ($status === OrderStatus::Confirmed) {
                 event(new OrderConfirmed($order, (string) $tenant->getTenantKey()));
             }
@@ -240,6 +246,11 @@ final class OrderService
 
             $order = $order->refresh()->load(['customer', 'items', 'salesInvoice', 'taxRate', 'warehouse']);
 
+            if ($order->status === OrderStatus::Pending && $order->warehouse_id !== null) {
+                $this->reservations->releaseForOrder($order);
+                $this->reserveOrderStock($order);
+            }
+
             if (
                 $order->status === OrderStatus::Confirmed
                 && $previousStatus !== OrderStatus::Confirmed
@@ -259,6 +270,8 @@ final class OrderService
         DB::transaction(function () use ($order): void {
             if ($order->inventory_decremented) {
                 $this->restoreInventory($order);
+            } else {
+                $this->reservations->releaseForOrder($order);
             }
 
             $order->delete();
@@ -272,6 +285,7 @@ final class OrderService
     {
         if ($order->status === OrderStatus::Cancelled) {
             $this->restoreInventory($order);
+            $this->reservations->releaseForOrder($order);
 
             return;
         }
@@ -305,25 +319,38 @@ final class OrderService
             $warehouse = Warehouse::query()->findOrFail($order->warehouse_id);
 
             foreach ($order->items as $item) {
-                $available = (int) WarehouseStock::query()
-                    ->where('warehouse_id', $warehouse->id)
-                    ->where('product_id', $item->product_id)
-                    ->value('quantity');
+                /** @var Product $product */
+                $product = Product::query()->findOrFail($item->product_id);
 
-                if ($available < $item->quantity) {
+                if (! $product->track_inventory) {
+                    continue;
+                }
+
+                $onHand = $this->ledger->onHand($warehouse, $product);
+
+                if ($onHand < $item->quantity) {
                     throw ValidationException::withMessages([
-                        'items' => ["Insufficient warehouse stock for product #{$item->product_id}. Available: {$available}."],
+                        'items' => ["Insufficient warehouse stock for product #{$item->product_id}. Available: {$onHand}."],
                     ]);
                 }
 
-                $this->warehouses->adjustStock($warehouse, $item->product_id, -1 * $item->quantity);
+                $this->ledger->move(
+                    warehouse: $warehouse,
+                    product: $product,
+                    quantityDelta: -1 * $item->quantity,
+                    reason: StockMovementReason::Sale,
+                    reference: $order,
+                    notes: "Sale for order {$order->number}",
+                );
             }
+
+            $this->reservations->consumeForOrder($order);
         } else {
             foreach ($order->items as $item) {
                 /** @var Product|null $product */
                 $product = Product::query()->lockForUpdate()->find($item->product_id);
 
-                if ($product === null || $product->stock_quantity === null) {
+                if ($product === null || ! $product->track_inventory || $product->stock_quantity === null) {
                     continue;
                 }
 
@@ -353,14 +380,28 @@ final class OrderService
             $warehouse = Warehouse::query()->findOrFail($order->warehouse_id);
 
             foreach ($order->items as $item) {
-                $this->warehouses->adjustStock($warehouse, $item->product_id, $item->quantity);
+                /** @var Product $product */
+                $product = Product::query()->findOrFail($item->product_id);
+
+                if (! $product->track_inventory) {
+                    continue;
+                }
+
+                $this->ledger->move(
+                    warehouse: $warehouse,
+                    product: $product,
+                    quantityDelta: $item->quantity,
+                    reason: StockMovementReason::SaleReversal,
+                    reference: $order,
+                    notes: "Reversal for order {$order->number}",
+                );
             }
         } else {
             foreach ($order->items as $item) {
                 /** @var Product|null $product */
                 $product = Product::query()->lockForUpdate()->find($item->product_id);
 
-                if ($product === null || $product->stock_quantity === null) {
+                if ($product === null || ! $product->track_inventory || $product->stock_quantity === null) {
                     continue;
                 }
 
@@ -369,6 +410,34 @@ final class OrderService
         }
 
         $order->forceFill(['inventory_decremented' => false])->save();
+    }
+
+    private function reserveOrderStock(Order $order): void
+    {
+        if ($order->warehouse_id === null) {
+            return;
+        }
+
+        /** @var Warehouse $warehouse */
+        $warehouse = Warehouse::query()->findOrFail($order->warehouse_id);
+        $order->loadMissing('items');
+
+        foreach ($order->items as $item) {
+            /** @var Product $product */
+            $product = Product::query()->findOrFail($item->product_id);
+
+            if (! $product->track_inventory) {
+                continue;
+            }
+
+            $this->reservations->reserve(
+                warehouse: $warehouse,
+                product: $product,
+                quantity: $item->quantity,
+                order: $order,
+                expiresAt: now()->addDays(7),
+            );
+        }
     }
 
     private function resolveTax(?int $taxId): ?Tax
@@ -432,7 +501,7 @@ final class OrderService
             $quantity = $item['quantity'];
             $unitPrice = $product->unit_price;
 
-            if ($enforceStock && $product->stock_quantity !== null) {
+            if ($enforceStock && $product->track_inventory && $product->stock_quantity !== null) {
                 $requestedByProduct[$product->id] = ($requestedByProduct[$product->id] ?? 0) + $quantity;
 
                 if ($requestedByProduct[$product->id] > $product->stock_quantity) {

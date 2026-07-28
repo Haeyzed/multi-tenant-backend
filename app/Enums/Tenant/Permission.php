@@ -22,6 +22,11 @@ enum Permission: string
     case CustomersUpdate = 'customers.update';
     case CustomersDelete = 'customers.delete';
 
+    case CustomerGroupsView = 'customer_groups.view';
+    case CustomerGroupsCreate = 'customer_groups.create';
+    case CustomerGroupsUpdate = 'customer_groups.update';
+    case CustomerGroupsDelete = 'customer_groups.delete';
+
     case ProductsView = 'products.view';
     case ProductsCreate = 'products.create';
     case ProductsUpdate = 'products.update';
@@ -52,10 +57,26 @@ enum Permission: string
     case WarehousesUpdate = 'warehouses.update';
     case WarehousesDelete = 'warehouses.delete';
 
+    case TransfersView = 'transfers.view';
+    case TransfersCreate = 'transfers.create';
+    case TransfersUpdate = 'transfers.update';
+    case TransfersDelete = 'transfers.delete';
+    case TransfersApprove = 'transfers.approve';
+
     case EmployeesView = 'employees.view';
     case EmployeesCreate = 'employees.create';
     case EmployeesUpdate = 'employees.update';
     case EmployeesDelete = 'employees.delete';
+
+    case BrandsView = 'brands.view';
+    case BrandsCreate = 'brands.create';
+    case BrandsUpdate = 'brands.update';
+    case BrandsDelete = 'brands.delete';
+
+    case CollectionsView = 'collections.view';
+    case CollectionsCreate = 'collections.create';
+    case CollectionsUpdate = 'collections.update';
+    case CollectionsDelete = 'collections.delete';
 
     case SettingsView = 'settings.view';
     case SettingsUpdate = 'settings.update';
@@ -83,13 +104,17 @@ enum Permission: string
         return [
             self::UsersView,
             self::CustomersView,
+            self::CustomerGroupsView,
             self::ProductsView,
             self::OrdersView,
             self::InvoicesView,
             self::CategoriesView,
             self::TaxesView,
             self::WarehousesView,
+            self::TransfersView,
             self::EmployeesView,
+            self::BrandsView,
+            self::CollectionsView,
             self::SettingsView,
             self::ReportsView,
             self::BillingView,
