@@ -1,0 +1,458 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Tenant;
+
+use App\Enums\Tenant\OrderStatus;
+use App\Events\Tenant\Erp\OrderConfirmed;
+use App\Models\Tenant;
+use App\Models\Tenant\Customer;
+use App\Models\Tenant\Order;
+use App\Models\Tenant\Product;
+use App\Models\Tenant\Tax;
+use App\Models\Tenant\Warehouse;
+use App\Models\Tenant\WarehouseStock;
+use App\Services\Billing\EntitlementEnforcer;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedInclude;
+use Spatie\QueryBuilder\AllowedSort;
+use Spatie\QueryBuilder\QueryBuilder;
+use Throwable;
+
+/**
+ * Tenant sales order management.
+ */
+final class OrderService
+{
+    public function __construct(
+        private SalesInvoiceService $salesInvoices,
+        private EntitlementEnforcer $entitlements,
+        private WarehouseService $warehouses,
+    ) {}
+
+    /**
+     * @return LengthAwarePaginator<int, Order>
+     */
+    public function list(int $perPage = 15): LengthAwarePaginator
+    {
+        return QueryBuilder::for(Order::class)
+            ->allowedFilters(
+                AllowedFilter::exact('id'),
+                AllowedFilter::exact('customer_id'),
+                AllowedFilter::exact('tax_id'),
+                AllowedFilter::exact('warehouse_id'),
+                AllowedFilter::exact('status'),
+                AllowedFilter::exact('currency'),
+                AllowedFilter::partial('number'),
+            )
+            ->allowedSorts(
+                AllowedSort::field('id'),
+                AllowedSort::field('number'),
+                AllowedSort::field('status'),
+                AllowedSort::field('total'),
+                AllowedSort::field('placed_at'),
+                AllowedSort::field('created_at'),
+            )
+            ->allowedIncludes(
+                AllowedInclude::relationship('customer'),
+                AllowedInclude::relationship('items'),
+                AllowedInclude::relationship('salesInvoice'),
+                AllowedInclude::relationship('taxRate'),
+                AllowedInclude::relationship('warehouse'),
+            )
+            ->defaultSort('-created_at')
+            ->with(['customer', 'items'])
+            ->paginate($perPage)
+            ->appends(request()->query());
+    }
+
+    /**
+     * @param  array{
+     *     customer_id: int,
+     *     tax_id?: int|null,
+     *     warehouse_id?: int|null,
+     *     notes?: string|null,
+     *     status?: string,
+     *     items: list<array{product_id: int, quantity: int}>
+     * }  $data
+     *
+     * @throws Throwable
+     */
+    public function create(array $data): Order
+    {
+        return DB::transaction(function () use ($data): Order {
+            /** @var Tenant $tenant */
+            $tenant = tenant();
+            $this->entitlements->assertCanCreateOrder($tenant);
+
+            /** @var Customer $customer */
+            $customer = Customer::query()->findOrFail($data['customer_id']);
+
+            if (! $customer->is_active) {
+                throw ValidationException::withMessages([
+                    'customer_id' => ['The selected customer is inactive.'],
+                ]);
+            }
+
+            $status = OrderStatus::tryFrom($data['status'] ?? OrderStatus::Draft->value) ?? OrderStatus::Draft;
+            $lines = $this->buildLines($data['items'], $this->shouldEnforceStock($status));
+            $currency = $lines[0]['currency'];
+            $subtotal = array_sum(array_column($lines, 'line_total'));
+            $tax = $this->resolveTax($data['tax_id'] ?? null);
+            $taxAmount = $tax?->calculateTax($subtotal) ?? 0;
+            $warehouseId = $this->resolveWarehouseId($data['warehouse_id'] ?? null);
+
+            /** @var Order $order */
+            $order = Order::query()->create([
+                'number' => 'ORD-'.Str::upper(Str::random(10)),
+                'customer_id' => $customer->id,
+                'tax_id' => $tax?->id,
+                'warehouse_id' => $warehouseId,
+                'status' => $status,
+                'currency' => $currency,
+                'subtotal' => $subtotal,
+                'tax' => $taxAmount,
+                'total' => $subtotal + $taxAmount,
+                'notes' => $data['notes'] ?? null,
+                'placed_at' => $status === OrderStatus::Draft ? null : now(),
+                'inventory_decremented' => false,
+            ]);
+
+            foreach ($lines as $line) {
+                $order->items()->create([
+                    'product_id' => $line['product_id'],
+                    'product_name' => $line['product_name'],
+                    'product_sku' => $line['product_sku'],
+                    'quantity' => $line['quantity'],
+                    'unit_price' => $line['unit_price'],
+                    'line_total' => $line['line_total'],
+                ]);
+            }
+
+            $this->syncInventoryAndInvoice($order);
+
+            $order = $order->refresh()->load(['customer', 'items', 'salesInvoice', 'taxRate', 'warehouse']);
+
+            if ($status === OrderStatus::Confirmed) {
+                event(new OrderConfirmed($order, (string) $tenant->getTenantKey()));
+            }
+
+            return $order;
+        });
+    }
+
+    public function find(Order $order): Order
+    {
+        return $order->loadMissing(['customer', 'items.product', 'salesInvoice', 'taxRate', 'warehouse']);
+    }
+
+    /**
+     * @param  array{
+     *     status?: string,
+     *     notes?: string|null,
+     *     tax_id?: int|null,
+     *     warehouse_id?: int|null,
+     *     items?: list<array{product_id: int, quantity: int}>
+     * }  $data
+     *
+     * @throws Throwable
+     */
+    public function update(Order $order, array $data): Order
+    {
+        return DB::transaction(function () use ($order, $data): Order {
+            $previousStatus = $order->status;
+            /** @var Tenant $tenant */
+            $tenant = tenant();
+
+            if ($order->status === OrderStatus::Cancelled || $order->status === OrderStatus::Fulfilled) {
+                throw ValidationException::withMessages([
+                    'order' => ['Fulfilled or cancelled orders cannot be updated.'],
+                ]);
+            }
+
+            if (isset($data['items']) && $order->inventory_decremented) {
+                $this->restoreInventory($order);
+            }
+
+            if (array_key_exists('notes', $data)) {
+                $order->notes = $data['notes'];
+            }
+
+            if (array_key_exists('tax_id', $data)) {
+                $order->tax_id = $this->resolveTax($data['tax_id'])?->id;
+            }
+
+            if (array_key_exists('warehouse_id', $data)) {
+                if ($order->inventory_decremented) {
+                    throw ValidationException::withMessages([
+                        'warehouse_id' => ['Warehouse cannot be changed after inventory has been decremented.'],
+                    ]);
+                }
+
+                $order->warehouse_id = $this->resolveWarehouseId($data['warehouse_id']);
+            }
+
+            if (isset($data['status'])) {
+                $status = OrderStatus::from($data['status']);
+                $order->status = $status;
+
+                if ($status !== OrderStatus::Draft && $order->placed_at === null) {
+                    $order->placed_at = now();
+                }
+            }
+
+            if (isset($data['items'])) {
+                $lines = $this->buildLines($data['items'], $this->shouldEnforceStock($order->status));
+                $currency = $lines[0]['currency'];
+                $subtotal = array_sum(array_column($lines, 'line_total'));
+
+                $order->items()->delete();
+
+                foreach ($lines as $line) {
+                    $order->items()->create([
+                        'product_id' => $line['product_id'],
+                        'product_name' => $line['product_name'],
+                        'product_sku' => $line['product_sku'],
+                        'quantity' => $line['quantity'],
+                        'unit_price' => $line['unit_price'],
+                        'line_total' => $line['line_total'],
+                    ]);
+                }
+
+                $order->currency = $currency;
+                $order->subtotal = $subtotal;
+            }
+
+            $tax = $order->tax_id !== null
+                ? Tax::query()->find($order->tax_id)
+                : null;
+            $order->tax = $tax?->calculateTax((int) $order->subtotal) ?? 0;
+            $order->total = (int) $order->subtotal + (int) $order->tax;
+
+            $order->save();
+
+            $this->syncInventoryAndInvoice($order);
+
+            $order = $order->refresh()->load(['customer', 'items', 'salesInvoice', 'taxRate', 'warehouse']);
+
+            if (
+                $order->status === OrderStatus::Confirmed
+                && $previousStatus !== OrderStatus::Confirmed
+            ) {
+                event(new OrderConfirmed($order, (string) $tenant->getTenantKey()));
+            }
+
+            return $order;
+        });
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function delete(Order $order): void
+    {
+        DB::transaction(function () use ($order): void {
+            if ($order->inventory_decremented) {
+                $this->restoreInventory($order);
+            }
+
+            $order->delete();
+        });
+    }
+
+    /**
+     * @throws Throwable
+     */
+    private function syncInventoryAndInvoice(Order $order): void
+    {
+        if ($order->status === OrderStatus::Cancelled) {
+            $this->restoreInventory($order);
+
+            return;
+        }
+
+        if ($this->shouldDecrementInventory($order->status)) {
+            $this->applyInventory($order);
+            $this->salesInvoices->ensureForOrder($order->load('items'));
+        }
+    }
+
+    private function shouldEnforceStock(OrderStatus $status): bool
+    {
+        return $status !== OrderStatus::Draft && $status !== OrderStatus::Cancelled;
+    }
+
+    private function shouldDecrementInventory(OrderStatus $status): bool
+    {
+        return $status === OrderStatus::Confirmed || $status === OrderStatus::Fulfilled;
+    }
+
+    private function applyInventory(Order $order): void
+    {
+        if ($order->inventory_decremented) {
+            return;
+        }
+
+        $order->loadMissing('items');
+
+        if ($order->warehouse_id !== null) {
+            /** @var Warehouse $warehouse */
+            $warehouse = Warehouse::query()->findOrFail($order->warehouse_id);
+
+            foreach ($order->items as $item) {
+                $available = (int) WarehouseStock::query()
+                    ->where('warehouse_id', $warehouse->id)
+                    ->where('product_id', $item->product_id)
+                    ->value('quantity');
+
+                if ($available < $item->quantity) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Insufficient warehouse stock for product #{$item->product_id}. Available: {$available}."],
+                    ]);
+                }
+
+                $this->warehouses->adjustStock($warehouse, $item->product_id, -1 * $item->quantity);
+            }
+        } else {
+            foreach ($order->items as $item) {
+                /** @var Product|null $product */
+                $product = Product::query()->lockForUpdate()->find($item->product_id);
+
+                if ($product === null || $product->stock_quantity === null) {
+                    continue;
+                }
+
+                if ($product->stock_quantity < $item->quantity) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Insufficient stock for {$product->sku}. Available: {$product->stock_quantity}."],
+                    ]);
+                }
+
+                $product->decrement('stock_quantity', $item->quantity);
+            }
+        }
+
+        $order->forceFill(['inventory_decremented' => true])->save();
+    }
+
+    private function restoreInventory(Order $order): void
+    {
+        if (! $order->inventory_decremented) {
+            return;
+        }
+
+        $order->loadMissing('items');
+
+        if ($order->warehouse_id !== null) {
+            /** @var Warehouse $warehouse */
+            $warehouse = Warehouse::query()->findOrFail($order->warehouse_id);
+
+            foreach ($order->items as $item) {
+                $this->warehouses->adjustStock($warehouse, $item->product_id, $item->quantity);
+            }
+        } else {
+            foreach ($order->items as $item) {
+                /** @var Product|null $product */
+                $product = Product::query()->lockForUpdate()->find($item->product_id);
+
+                if ($product === null || $product->stock_quantity === null) {
+                    continue;
+                }
+
+                $product->increment('stock_quantity', $item->quantity);
+            }
+        }
+
+        $order->forceFill(['inventory_decremented' => false])->save();
+    }
+
+    private function resolveTax(?int $taxId): ?Tax
+    {
+        if ($taxId !== null) {
+            /** @var Tax $tax */
+            $tax = Tax::query()->whereKey($taxId)->where('is_active', true)->firstOrFail();
+
+            return $tax;
+        }
+
+        return Tax::query()->where('is_default', true)->where('is_active', true)->first();
+    }
+
+    private function resolveWarehouseId(?int $warehouseId): ?int
+    {
+        if ($warehouseId !== null) {
+            Warehouse::query()->whereKey($warehouseId)->where('is_active', true)->firstOrFail();
+
+            return $warehouseId;
+        }
+
+        return Warehouse::query()->where('is_default', true)->where('is_active', true)->value('id');
+    }
+
+    /**
+     * @param  list<array{product_id: int, quantity: int}>  $items
+     * @return list<array{product_id: int, product_name: string, product_sku: string, quantity: int, unit_price: int, line_total: int, currency: string}>
+     */
+    private function buildLines(array $items, bool $enforceStock = false): array
+    {
+        if ($items === []) {
+            throw ValidationException::withMessages([
+                'items' => ['An order must include at least one item.'],
+            ]);
+        }
+
+        $lines = [];
+        $currency = null;
+        /** @var array<int, int> $requestedByProduct */
+        $requestedByProduct = [];
+
+        foreach ($items as $index => $item) {
+            /** @var Product $product */
+            $product = Product::query()->findOrFail($item['product_id']);
+
+            if (! $product->is_active) {
+                throw ValidationException::withMessages([
+                    "items.{$index}.product_id" => ['The selected product is inactive.'],
+                ]);
+            }
+
+            $currency ??= $product->currency;
+
+            if ($product->currency !== $currency) {
+                throw ValidationException::withMessages([
+                    'items' => ['All order items must share the same currency.'],
+                ]);
+            }
+
+            $quantity = $item['quantity'];
+            $unitPrice = $product->unit_price;
+
+            if ($enforceStock && $product->stock_quantity !== null) {
+                $requestedByProduct[$product->id] = ($requestedByProduct[$product->id] ?? 0) + $quantity;
+
+                if ($requestedByProduct[$product->id] > $product->stock_quantity) {
+                    throw ValidationException::withMessages([
+                        "items.{$index}.quantity" => ["Insufficient stock for {$product->sku}. Available: {$product->stock_quantity}."],
+                    ]);
+                }
+            }
+
+            $lines[] = [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'product_sku' => $product->sku,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'line_total' => $quantity * $unitPrice,
+                'currency' => $product->currency,
+            ];
+        }
+
+        return $lines;
+    }
+}
