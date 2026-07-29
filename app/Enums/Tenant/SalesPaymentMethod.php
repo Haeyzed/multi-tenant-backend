@@ -10,5 +10,6 @@ enum SalesPaymentMethod: string
     case Card = 'card';
     case BankTransfer = 'bank_transfer';
     case Wallet = 'wallet';
+    case GiftCard = 'gift_card';
     case Other = 'other';
 }

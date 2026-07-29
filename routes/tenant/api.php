@@ -30,6 +30,7 @@ use App\Http\Controllers\Tenant\DataJobController;
 use App\Http\Controllers\Tenant\EmployeeController;
 use App\Http\Controllers\Tenant\ExchangeRateController;
 use App\Http\Controllers\Tenant\FulfilmentController;
+use App\Http\Controllers\Tenant\GiftCardController;
 use App\Http\Controllers\Tenant\GoodsReceiptController;
 use App\Http\Controllers\Tenant\InventoryController;
 use App\Http\Controllers\Tenant\LeadController;
@@ -65,6 +66,7 @@ use App\Http\Controllers\Tenant\SupplierController;
 use App\Http\Controllers\Tenant\SupplierInvoiceController;
 use App\Http\Controllers\Tenant\SupplierPaymentController;
 use App\Http\Controllers\Tenant\SupplierReturnController;
+use App\Http\Controllers\Tenant\SupplierRfqController;
 use App\Http\Controllers\Tenant\TaxController;
 use App\Http\Controllers\Tenant\UnitOfMeasureController;
 use App\Http\Controllers\Tenant\UserController;
@@ -394,6 +396,39 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
         Route::apiResource('purchase-requests', PurchaseRequestController::class)
             ->parameters(['purchase-requests' => 'purchase_request'])
             ->names('tenant.purchase-requests');
+
+        Route::middleware(['feature:features.erp.rfq'])->group(function (): void {
+            Route::post('supplier-rfqs/{supplier_rfq}/send', [SupplierRfqController::class, 'send'])
+                ->name('tenant.supplier-rfqs.send');
+            Route::post('supplier-rfqs/{supplier_rfq}/cancel', [SupplierRfqController::class, 'cancel'])
+                ->name('tenant.supplier-rfqs.cancel');
+            Route::get('supplier-rfqs/{supplier_rfq}/quotes', [SupplierRfqController::class, 'quotes'])
+                ->name('tenant.supplier-rfqs.quotes.index');
+            Route::get('supplier-rfqs/{supplier_rfq}/quotes/{supplier_quote}', [SupplierRfqController::class, 'showQuote'])
+                ->name('tenant.supplier-rfqs.quotes.show');
+            Route::post('supplier-rfqs/{supplier_rfq}/quotes/{supplier_quote}/submit', [SupplierRfqController::class, 'submitQuote'])
+                ->name('tenant.supplier-rfqs.quotes.submit');
+            Route::post('supplier-rfqs/{supplier_rfq}/quotes/{supplier_quote}/accept', [SupplierRfqController::class, 'acceptQuote'])
+                ->name('tenant.supplier-rfqs.quotes.accept');
+            Route::post('supplier-rfqs/{supplier_rfq}/quotes/{supplier_quote}/reject', [SupplierRfqController::class, 'rejectQuote'])
+                ->name('tenant.supplier-rfqs.quotes.reject');
+            Route::apiResource('supplier-rfqs', SupplierRfqController::class)
+                ->parameters(['supplier-rfqs' => 'supplier_rfq'])
+                ->names('tenant.supplier-rfqs');
+        });
+    });
+
+    Route::middleware(['feature:features.erp.gift_cards'])->group(function (): void {
+        Route::post('gift-cards/check-balance', [GiftCardController::class, 'checkBalance'])
+            ->name('tenant.gift-cards.check-balance');
+        Route::post('gift-cards/{gift_card}/void', [GiftCardController::class, 'void'])
+            ->name('tenant.gift-cards.void');
+        Route::post('orders/{order}/redeem-gift-card', [GiftCardController::class, 'redeemOnOrder'])
+            ->name('tenant.orders.redeem-gift-card');
+        Route::apiResource('gift-cards', GiftCardController::class)
+            ->except(['update'])
+            ->parameters(['gift-cards' => 'gift_card'])
+            ->names('tenant.gift-cards');
     });
 
     Route::middleware(['feature:features.erp.notifications'])->group(function (): void {

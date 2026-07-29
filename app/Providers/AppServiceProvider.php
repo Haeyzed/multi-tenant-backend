@@ -7,9 +7,12 @@ namespace App\Providers;
 use App\Contracts\Tenant\InventoryValuationStrategy;
 use App\Enums\Billing\FeatureFlagKey;
 use App\Events\Tenant\Erp\ApprovalDecided;
+use App\Events\Tenant\Erp\GiftCardRedeemed;
 use App\Events\Tenant\Erp\OrderConfirmed;
 use App\Events\Tenant\Erp\PaymentRecorded;
 use App\Events\Tenant\Erp\PurchaseRequestApproved;
+use App\Events\Tenant\Erp\RfqQuoteAccepted;
+use App\Events\Tenant\Erp\RfqSent;
 use App\Events\Tenant\Erp\StockCountPosted;
 use App\Events\Tenant\Erp\SupplierInvoiceIssued;
 use App\Events\Tenant\Erp\SupplierPaymentRecorded;
@@ -27,6 +30,7 @@ use App\Policies\Central\SubscriptionPolicy;
 use App\Services\Central\FeatureFlagService;
 use App\Services\Central\TenantApiQuotaService;
 use App\Services\Tenant\FifoCostService;
+use App\Services\Tenant\LifoCostService;
 use App\Services\Tenant\WeightedAverageCostService;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -50,6 +54,10 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(InventoryValuationStrategy::class, function ($app): InventoryValuationStrategy {
             $flags = $app->make(FeatureFlagService::class);
+
+            if ($flags->enabled(FeatureFlagKey::ErpInventoryLifo, false)) {
+                return $app->make(LifoCostService::class);
+            }
 
             if ($flags->enabled(FeatureFlagKey::ErpInventoryFifo, false)) {
                 return $app->make(FifoCostService::class);
@@ -79,6 +87,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(StockCountPosted::class, [$listener, 'handleStockCountPosted']);
         Event::listen(SupplierPaymentRecorded::class, [$listener, 'handleSupplierPaymentRecorded']);
         Event::listen(SupplierInvoiceIssued::class, [$listener, 'handleSupplierInvoiceIssued']);
+        Event::listen(RfqSent::class, [$listener, 'handleRfqSent']);
+        Event::listen(RfqQuoteAccepted::class, [$listener, 'handleRfqQuoteAccepted']);
+        Event::listen(GiftCardRedeemed::class, [$listener, 'handleGiftCardRedeemed']);
     }
 
     private function configureWebhookListeners(): void

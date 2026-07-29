@@ -124,6 +124,12 @@ enum Permission: string
     case PurchaseRequestsUpdate = 'purchase_requests.update';
     case PurchaseRequestsApprove = 'purchase_requests.approve';
 
+    case RfqsView = 'rfqs.view';
+    case RfqsCreate = 'rfqs.create';
+    case RfqsUpdate = 'rfqs.update';
+    case RfqsSend = 'rfqs.send';
+    case RfqsDecide = 'rfqs.decide';
+
     case GoodsReceiptsView = 'goods_receipts.view';
     case GoodsReceiptsCreate = 'goods_receipts.create';
     case GoodsReceiptsUpdate = 'goods_receipts.update';
@@ -230,6 +236,11 @@ enum Permission: string
     case WalletsView = 'wallets.view';
     case WalletsUpdate = 'wallets.update';
 
+    case GiftCardsView = 'gift_cards.view';
+    case GiftCardsCreate = 'gift_cards.create';
+    case GiftCardsUpdate = 'gift_cards.update';
+    case GiftCardsDelete = 'gift_cards.delete';
+
     case SettingsView = 'settings.view';
     case SettingsUpdate = 'settings.update';
 
@@ -279,6 +290,7 @@ enum Permission: string
             self::SuppliersView,
             self::PurchaseOrdersView,
             self::PurchaseRequestsView,
+            self::RfqsView,
             self::GoodsReceiptsView,
             self::SupplierReturnsView,
             self::ReturnsView,
@@ -301,6 +313,7 @@ enum Permission: string
             self::SupplierPaymentsView,
             self::ExchangeRatesView,
             self::WalletsView,
+            self::GiftCardsView,
             self::SettingsView,
             self::ReportsView,
             self::NotificationsView,

@@ -26,9 +26,12 @@ enum FeatureFlagKey: string
     case ErpChannels = 'features.erp.channels';
     case ErpInventoryAdvanced = 'features.erp.inventory_advanced';
     case ErpInventoryFifo = 'features.erp.inventory_fifo';
+    case ErpInventoryLifo = 'features.erp.inventory_lifo';
     case ErpNotifications = 'features.erp.notifications';
     case ErpFinanceAdvanced = 'features.erp.finance_advanced';
     case ErpAccountsPayable = 'features.erp.accounts_payable';
+    case ErpRfq = 'features.erp.rfq';
+    case ErpGiftCards = 'features.erp.gift_cards';
     case BillingSelfServe = 'features.billing.self_serve';
     case TenantNotifications = 'features.notifications.tenant';
 
@@ -60,9 +63,12 @@ enum FeatureFlagKey: string
             self::ErpChannels => 'Enable sales channels, channel inventory/pricing, and POS sessions.',
             self::ErpInventoryAdvanced => 'Enable lot tracking, serial numbers, cycle counts, and stock ageing reports.',
             self::ErpInventoryFifo => 'Use FIFO lot-based inventory valuation instead of weighted average cost.',
+            self::ErpInventoryLifo => 'Use LIFO lot-based inventory valuation instead of weighted average cost.',
             self::ErpNotifications => 'Enable in-app ERP notifications for tenant users.',
             self::ErpFinanceAdvanced => 'Enable sales payments, exchange rates, customer wallets, and credit limit enforcement.',
             self::ErpAccountsPayable => 'Enable supplier invoices, supplier payments, and accounts payable ageing reports.',
+            self::ErpRfq => 'Enable supplier request-for-quotation workflow and quote comparison.',
+            self::ErpGiftCards => 'Enable gift card issuance, balance checks, and redemption.',
             self::BillingSelfServe => 'Allow tenants to subscribe and manage billing themselves.',
             self::TenantNotifications => 'Send billing lifecycle emails to tenant admins.',
         };

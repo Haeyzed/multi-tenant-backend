@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Listeners\Tenant;
 
 use App\Enums\Tenant\Role;
+use App\Events\Tenant\Erp\GiftCardRedeemed;
 use App\Events\Tenant\Erp\PaymentRecorded;
 use App\Events\Tenant\Erp\PurchaseRequestApproved;
+use App\Events\Tenant\Erp\RfqQuoteAccepted;
+use App\Events\Tenant\Erp\RfqSent;
 use App\Events\Tenant\Erp\StockCountPosted;
 use App\Events\Tenant\Erp\SupplierInvoiceIssued;
 use App\Events\Tenant\Erp\SupplierPaymentRecorded;
@@ -75,6 +78,44 @@ final class NotifyOnErpEvent implements ShouldQueue
             data: [
                 'type' => 'supplier_invoice_issued',
                 'supplier_invoice_id' => $event->invoice->id,
+            ],
+        );
+    }
+
+    public function handleRfqSent(RfqSent $event): void
+    {
+        $this->notify(
+            title: 'RFQ sent',
+            body: "RFQ {$event->rfq->number} was sent to suppliers.",
+            data: [
+                'type' => 'rfq_sent',
+                'supplier_rfq_id' => $event->rfq->id,
+            ],
+        );
+    }
+
+    public function handleRfqQuoteAccepted(RfqQuoteAccepted $event): void
+    {
+        $this->notify(
+            title: 'RFQ quote accepted',
+            body: "Quote accepted; purchase order {$event->purchaseOrder->number} created.",
+            data: [
+                'type' => 'rfq_quote_accepted',
+                'supplier_quote_id' => $event->quote->id,
+                'purchase_order_id' => $event->purchaseOrder->id,
+            ],
+        );
+    }
+
+    public function handleGiftCardRedeemed(GiftCardRedeemed $event): void
+    {
+        $this->notify(
+            title: 'Gift card redeemed',
+            body: "Gift card redemption of {$event->redemption->amount} recorded.",
+            data: [
+                'type' => 'gift_card_redeemed',
+                'gift_card_id' => $event->redemption->gift_card_id,
+                'gift_card_redemption_id' => $event->redemption->id,
             ],
         );
     }
