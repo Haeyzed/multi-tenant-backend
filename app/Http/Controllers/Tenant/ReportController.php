@@ -64,6 +64,37 @@ class ReportController extends Controller
         );
     }
 
+    /**
+     * @operationId inventoryValuationReport
+     */
+    public function inventoryValuation(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        $warehouseId = $request->input('warehouse_id');
+
+        return ApiResponse::success(
+            data: $this->reports->inventoryValuation($warehouseId !== null ? (int) $warehouseId : null),
+            message: 'Inventory valuation report retrieved successfully.',
+        );
+    }
+
+    /**
+     * @operationId grossProfitReport
+     */
+    public function grossProfit(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        return ApiResponse::success(
+            data: $this->reports->grossProfit(
+                $this->date($request->input('from')),
+                $this->date($request->input('to')),
+            ),
+            message: 'Gross profit report retrieved successfully.',
+        );
+    }
+
     private function date(mixed $value): ?Carbon
     {
         if ($value === null || $value === '') {

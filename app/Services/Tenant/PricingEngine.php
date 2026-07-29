@@ -36,6 +36,8 @@ use Illuminate\Support\Carbon;
  */
 final class PricingEngine
 {
+    public function __construct(private ChannelPricingService $channelPricing) {}
+
     /**
      * @return PriceQuote
      */
@@ -52,15 +54,18 @@ final class PricingEngine
         $customer?->loadMissing('group');
 
         $catalog = (int) $product->unit_price;
+        $channelOverride = $channelId !== null
+            ? $this->channelPricing->resolveUnitPrice($channelId, $product->id, $quantity, $product->currency)
+            : null;
         $priceList = $this->resolvePriceList($product->currency, $customer, $priceListId, $channelId, $at);
         $listUnit = $priceList !== null
             ? $this->resolveListUnitPrice($priceList, $product->id, $quantity)
             : null;
 
-        $unit = $listUnit ?? $catalog;
+        $unit = $channelOverride ?? $listUnit ?? $catalog;
         $groupDiscountPercent = (int) ($customer?->group?->discount_percent ?? 0);
 
-        if ($listUnit === null && $groupDiscountPercent > 0) {
+        if ($channelOverride === null && $listUnit === null && $groupDiscountPercent > 0) {
             $unit = (int) round($unit * (100 - min(100, $groupDiscountPercent)) / 100);
         }
 

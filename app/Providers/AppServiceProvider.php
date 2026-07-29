@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\Tenant\InventoryValuationStrategy;
+use App\Events\Tenant\Erp\ApprovalDecided;
+use App\Events\Tenant\Erp\OrderConfirmed;
+use App\Events\Tenant\Erp\WorkOrderCompleted;
+use App\Listeners\DispatchTenantWebhooks;
 use App\Models\Central\User as CentralUser;
 use App\Models\Coupon;
 use App\Models\Plan;
@@ -13,12 +18,14 @@ use App\Policies\Central\CouponPolicy;
 use App\Policies\Central\PlanPolicy;
 use App\Policies\Central\SubscriptionPolicy;
 use App\Services\Central\TenantApiQuotaService;
+use App\Services\Tenant\WeightedAverageCostService;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
@@ -31,6 +38,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         Scramble::ignoreDefaultRoutes();
+
+        $this->app->bind(InventoryValuationStrategy::class, WeightedAverageCostService::class);
     }
 
     public function boot(): void
@@ -40,6 +49,14 @@ class AppServiceProvider extends ServiceProvider
         $this->configureEmailVerificationUrls();
         $this->configureApiDocumentation();
         $this->configurePolicies();
+        $this->configureWebhookListeners();
+    }
+
+    private function configureWebhookListeners(): void
+    {
+        Event::listen(OrderConfirmed::class, [DispatchTenantWebhooks::class, 'handleOrderConfirmed']);
+        Event::listen(WorkOrderCompleted::class, [DispatchTenantWebhooks::class, 'handleWorkOrderCompleted']);
+        Event::listen(ApprovalDecided::class, [DispatchTenantWebhooks::class, 'handleApprovalDecided']);
     }
 
     private function configurePolicies(): void

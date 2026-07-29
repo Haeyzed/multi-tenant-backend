@@ -100,21 +100,79 @@ final class ReportService
     }
 
     /**
-     * @return list<array{id: int, sku: string, name: string, stock_quantity: int}>
+     * @return list<array{product_id: int, sku: string, name: string, quantity: int, average_cost: int|null, valuation: int}>
      */
-    public function lowStock(int $threshold = 5): array
+    public function inventoryValuation(?int $warehouseId = null): array
     {
-        return Product::query()
-            ->whereNotNull('stock_quantity')
-            ->where('stock_quantity', '<=', $threshold)
-            ->orderBy('stock_quantity')
-            ->get(['id', 'sku', 'name', 'stock_quantity'])
-            ->map(fn (Product $product): array => [
-                'id' => $product->id,
-                'sku' => $product->sku,
-                'name' => $product->name,
-                'stock_quantity' => (int) $product->stock_quantity,
+        $query = DB::table('warehouse_stocks')
+            ->join('products', 'products.id', '=', 'warehouse_stocks.product_id')
+            ->whereNull('products.deleted_at')
+            ->select([
+                'products.id as product_id',
+                'products.sku',
+                'products.name',
+                'products.average_cost',
+                DB::raw('SUM(warehouse_stocks.quantity) as quantity'),
             ])
+            ->groupBy('products.id', 'products.sku', 'products.name', 'products.average_cost')
+            ->orderBy('products.sku');
+
+        if ($warehouseId !== null) {
+            $query->where('warehouse_stocks.warehouse_id', $warehouseId);
+        }
+
+        return $query->get()
+            ->map(function ($row): array {
+                $quantity = (int) $row->quantity;
+                $averageCost = $row->average_cost !== null ? (int) $row->average_cost : null;
+
+                return [
+                    'product_id' => (int) $row->product_id,
+                    'sku' => (string) $row->sku,
+                    'name' => (string) $row->name,
+                    'quantity' => $quantity,
+                    'average_cost' => $averageCost,
+                    'valuation' => $averageCost !== null ? $quantity * $averageCost : 0,
+                ];
+            })
             ->all();
+    }
+
+    /**
+     * Approximate gross profit using order line revenue minus product average cost × qty.
+     *
+     * @return array{from: string|null, to: string|null, revenue: int, cost: int, gross_profit: int, margin_bps: int}
+     */
+    public function grossProfit(?Carbon $from = null, ?Carbon $to = null): array
+    {
+        $query = OrderItem::query()
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->leftJoin('products', 'products.id', '=', 'order_items.product_id')
+            ->whereNull('orders.deleted_at')
+            ->whereNotIn('orders.status', [OrderStatus::Draft->value, OrderStatus::Cancelled->value])
+            ->selectRaw('COALESCE(SUM(order_items.line_total), 0) as revenue')
+            ->selectRaw('COALESCE(SUM(order_items.quantity * COALESCE(products.average_cost, 0)), 0) as cost');
+
+        if ($from !== null) {
+            $query->where('orders.placed_at', '>=', $from);
+        }
+
+        if ($to !== null) {
+            $query->where('orders.placed_at', '<=', $to);
+        }
+
+        $row = $query->first();
+        $revenue = (int) ($row->revenue ?? 0);
+        $cost = (int) ($row->cost ?? 0);
+        $grossProfit = $revenue - $cost;
+
+        return [
+            'from' => $from?->toIso8601String(),
+            'to' => $to?->toIso8601String(),
+            'revenue' => $revenue,
+            'cost' => $cost,
+            'gross_profit' => $grossProfit,
+            'margin_bps' => $revenue > 0 ? (int) round(($grossProfit / $revenue) * 10000) : 0,
+        ];
     }
 }

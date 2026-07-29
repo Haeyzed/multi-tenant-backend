@@ -36,6 +36,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property string $currency
  * @property int $unit_price
+ * @property int|null $average_cost
  * @property int|null $stock_quantity
  * @property bool $track_inventory
  * @property string|null $gtin
@@ -76,6 +77,7 @@ use Illuminate\Support\Carbon;
     'description',
     'currency',
     'unit_price',
+    'average_cost',
     'stock_quantity',
     'track_inventory',
     'gtin',
@@ -101,6 +103,7 @@ class Product extends Model
             'type' => ProductType::class,
             'status' => ProductStatus::class,
             'unit_price' => 'integer',
+            'average_cost' => 'integer',
             'stock_quantity' => 'integer',
             'track_inventory' => 'boolean',
             'is_active' => 'boolean',

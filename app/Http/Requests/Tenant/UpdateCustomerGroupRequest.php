@@ -31,7 +31,7 @@ class UpdateCustomerGroupRequest extends FormRequest
             'code' => ['sometimes', 'string', 'max:64', Rule::unique('customer_groups', 'code')->ignore($group)],
             'description' => ['nullable', 'string'],
             'discount_percent' => ['sometimes', 'integer', 'min:0', 'max:100'],
-            'price_list_id' => ['nullable', 'integer', 'min:1'],
+            'price_list_id' => ['nullable', 'integer', 'exists:price_lists,id'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

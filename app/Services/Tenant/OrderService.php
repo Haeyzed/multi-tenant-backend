@@ -8,6 +8,7 @@ use App\Enums\Tenant\OrderStatus;
 use App\Enums\Tenant\StockMovementReason;
 use App\Events\Tenant\Erp\OrderConfirmed;
 use App\Models\Tenant;
+use App\Models\Tenant\Channel;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Order;
 use App\Models\Tenant\Product;
@@ -49,6 +50,8 @@ final class OrderService
                 AllowedFilter::exact('customer_id'),
                 AllowedFilter::exact('tax_id'),
                 AllowedFilter::exact('warehouse_id'),
+                AllowedFilter::exact('channel_id'),
+                AllowedFilter::exact('pos_session_id'),
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('currency'),
                 AllowedFilter::partial('number'),
@@ -67,6 +70,8 @@ final class OrderService
                 AllowedInclude::relationship('salesInvoice'),
                 AllowedInclude::relationship('taxRate'),
                 AllowedInclude::relationship('warehouse'),
+                AllowedInclude::relationship('channel'),
+                AllowedInclude::relationship('posSession'),
             )
             ->defaultSort('-created_at')
             ->with(['customer', 'items'])
@@ -79,6 +84,8 @@ final class OrderService
      *     customer_id: int,
      *     tax_id?: int|null,
      *     warehouse_id?: int|null,
+     *     channel_id?: int|null,
+     *     pos_session_id?: int|null,
      *     notes?: string|null,
      *     status?: string,
      *     items: list<array{product_id: int, quantity: int}>
@@ -102,8 +109,18 @@ final class OrderService
                 ]);
             }
 
+            $channelId = $data['channel_id'] ?? null;
+            if ($channelId !== null) {
+                $channel = Channel::query()->findOrFail($channelId);
+                if (! $channel->is_active) {
+                    throw ValidationException::withMessages([
+                        'channel_id' => ['The selected channel is inactive.'],
+                    ]);
+                }
+            }
+
             $status = OrderStatus::tryFrom($data['status'] ?? OrderStatus::Draft->value) ?? OrderStatus::Draft;
-            $lines = $this->buildLines($data['items'], $this->shouldEnforceStock($status), $customer);
+            $lines = $this->buildLines($data['items'], $this->shouldEnforceStock($status), $customer, $channelId);
             $currency = $lines[0]['currency'];
             $subtotal = array_sum(array_column($lines, 'line_total'));
             $tax = $this->resolveTax($data['tax_id'] ?? null);
@@ -116,6 +133,8 @@ final class OrderService
                 'customer_id' => $customer->id,
                 'tax_id' => $tax?->id,
                 'warehouse_id' => $warehouseId,
+                'channel_id' => $channelId,
+                'pos_session_id' => $data['pos_session_id'] ?? null,
                 'status' => $status,
                 'currency' => $currency,
                 'subtotal' => $subtotal,
@@ -139,7 +158,7 @@ final class OrderService
 
             $this->syncInventoryAndInvoice($order);
 
-            $order = $order->refresh()->load(['customer', 'items', 'salesInvoice', 'taxRate', 'warehouse']);
+            $order = $order->refresh()->load(['customer', 'items', 'salesInvoice', 'taxRate', 'warehouse', 'channel', 'posSession']);
 
             if ($status === OrderStatus::Pending && $order->warehouse_id !== null) {
                 $this->reserveOrderStock($order);
@@ -214,7 +233,8 @@ final class OrderService
             }
 
             if (isset($data['items'])) {
-                $lines = $this->buildLines($data['items'], $this->shouldEnforceStock($order->status));
+                $customer = $order->customer ?? Customer::query()->findOrFail($order->customer_id);
+                $lines = $this->buildLines($data['items'], $this->shouldEnforceStock($order->status), $customer, $order->channel_id);
                 $currency = $lines[0]['currency'];
                 $subtotal = array_sum(array_column($lines, 'line_total'));
 
@@ -245,7 +265,7 @@ final class OrderService
 
             $this->syncInventoryAndInvoice($order);
 
-            $order = $order->refresh()->load(['customer', 'items', 'salesInvoice', 'taxRate', 'warehouse']);
+            $order = $order->refresh()->load(['customer', 'items', 'salesInvoice', 'taxRate', 'warehouse', 'channel', 'posSession']);
 
             if ($order->status === OrderStatus::Pending && $order->warehouse_id !== null) {
                 $this->reservations->releaseForOrder($order);
@@ -468,7 +488,7 @@ final class OrderService
      * @param  list<array{product_id: int, quantity: int}>  $items
      * @return list<array{product_id: int, product_name: string, product_sku: string, quantity: int, unit_price: int, line_total: int, currency: string}>
      */
-    private function buildLines(array $items, bool $enforceStock = false): array
+    private function buildLines(array $items, bool $enforceStock = false, ?Customer $customer = null, ?int $channelId = null): array
     {
         if ($items === []) {
             throw ValidationException::withMessages([
@@ -480,6 +500,7 @@ final class OrderService
         $currency = null;
         /** @var array<int, int> $requestedByProduct */
         $requestedByProduct = [];
+        $customer?->loadMissing('group');
 
         foreach ($items as $index => $item) {
             /** @var Product $product */
@@ -500,7 +521,8 @@ final class OrderService
             }
 
             $quantity = $item['quantity'];
-            $unitPrice = $product->unit_price;
+            $quote = $this->pricing->quote($product, $quantity, $customer, null, $channelId);
+            $unitPrice = $quote['unit_price'];
 
             if ($enforceStock && $product->track_inventory && $product->stock_quantity !== null) {
                 $requestedByProduct[$product->id] = ($requestedByProduct[$product->id] ?? 0) + $quantity;
@@ -518,7 +540,7 @@ final class OrderService
                 'product_sku' => $product->sku,
                 'quantity' => $quantity,
                 'unit_price' => $unitPrice,
-                'line_total' => $quantity * $unitPrice,
+                'line_total' => $quote['line_total'],
                 'currency' => $product->currency,
             ];
         }

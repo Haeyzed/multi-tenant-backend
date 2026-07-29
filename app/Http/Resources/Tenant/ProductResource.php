@@ -36,6 +36,7 @@ class ProductResource extends Resource
             'description' => $this->description,
             'currency' => $this->currency,
             'unit_price' => $this->unit_price,
+            'average_cost' => $this->average_cost,
             'stock_quantity' => $this->stock_quantity,
             'track_inventory' => $this->track_inventory,
             'gtin' => $this->gtin,

@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string $product_name
  * @property string $product_sku
  * @property int $quantity
+ * @property int $quantity_fulfilled
  * @property int $unit_price
  * @property int $line_total
  * @property Carbon|null $created_at
@@ -35,6 +36,7 @@ use Illuminate\Support\Carbon;
     'product_name',
     'product_sku',
     'quantity',
+    'quantity_fulfilled',
     'unit_price',
     'line_total',
 ])]
@@ -50,6 +52,7 @@ class OrderItem extends Model
     {
         return [
             'quantity' => 'integer',
+            'quantity_fulfilled' => 'integer',
             'unit_price' => 'integer',
             'line_total' => 'integer',
         ];

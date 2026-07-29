@@ -15,4 +15,8 @@ enum StockMovementReason: string
     case TransferOut = 'transfer_out';
     case TransferIn = 'transfer_in';
     case Receipt = 'receipt';
+    case PurchaseReturn = 'purchase_return';
+    case CustomerReturn = 'customer_return';
+    case ManufacturingIssue = 'manufacturing_issue';
+    case ManufacturingReceipt = 'manufacturing_receipt';
 }

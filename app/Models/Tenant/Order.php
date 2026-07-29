@@ -24,6 +24,8 @@ use Illuminate\Support\Carbon;
  * @property int $customer_id
  * @property int|null $tax_id
  * @property int|null $warehouse_id
+ * @property int|null $channel_id
+ * @property int|null $pos_session_id
  * @property OrderStatus $status
  * @property string $currency
  * @property int $subtotal
@@ -38,14 +40,21 @@ use Illuminate\Support\Carbon;
  * @property-read Customer $customer
  * @property-read Tax|null $taxRate
  * @property-read Warehouse|null $warehouse
+ * @property-read Channel|null $channel
+ * @property-read PosSession|null $posSession
  * @property-read Collection<int, OrderItem> $items
  * @property-read SalesInvoice|null $salesInvoice
+ * @property-read Collection<int, OrderNote> $orderNotes
+ * @property-read Collection<int, Fulfilment> $fulfilments
+ * @property-read Collection<int, Shipment> $shipments
  */
 #[Fillable([
     'number',
     'customer_id',
     'tax_id',
     'warehouse_id',
+    'channel_id',
+    'pos_session_id',
     'status',
     'currency',
     'subtotal',
@@ -100,6 +109,22 @@ class Order extends Model
     }
 
     /**
+     * @return BelongsTo<Channel, $this>
+     */
+    public function channel(): BelongsTo
+    {
+        return $this->belongsTo(Channel::class);
+    }
+
+    /**
+     * @return BelongsTo<PosSession, $this>
+     */
+    public function posSession(): BelongsTo
+    {
+        return $this->belongsTo(PosSession::class);
+    }
+
+    /**
      * @return HasMany<OrderItem, $this>
      */
     public function items(): HasMany
@@ -113,5 +138,29 @@ class Order extends Model
     public function salesInvoice(): HasOne
     {
         return $this->hasOne(SalesInvoice::class);
+    }
+
+    /**
+     * @return HasMany<OrderNote, $this>
+     */
+    public function orderNotes(): HasMany
+    {
+        return $this->hasMany(OrderNote::class);
+    }
+
+    /**
+     * @return HasMany<Fulfilment, $this>
+     */
+    public function fulfilments(): HasMany
+    {
+        return $this->hasMany(Fulfilment::class);
+    }
+
+    /**
+     * @return HasMany<Shipment, $this>
+     */
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(Shipment::class);
     }
 }

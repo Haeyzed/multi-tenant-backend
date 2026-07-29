@@ -25,6 +25,7 @@ class StoreOrderRequest extends FormRequest
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'tax_id' => ['nullable', 'integer', 'exists:taxes,id'],
             'warehouse_id' => ['nullable', 'integer', 'exists:warehouses,id'],
+            'channel_id' => ['nullable', 'integer', 'exists:channels,id'],
             'notes' => ['nullable', 'string'],
             'status' => ['sometimes', Rule::enum(OrderStatus::class)],
             'items' => ['required', 'array', 'min:1'],
@@ -34,7 +35,7 @@ class StoreOrderRequest extends FormRequest
     }
 
     /**
-     * @return array{customer_id: int, tax_id?: int|null, warehouse_id?: int|null, notes?: string|null, status?: string, items: list<array{product_id: int, quantity: int}>}
+     * @return array{customer_id: int, tax_id?: int|null, warehouse_id?: int|null, channel_id?: int|null, notes?: string|null, status?: string, items: list<array{product_id: int, quantity: int}>}
      */
     public function orderData(): array
     {

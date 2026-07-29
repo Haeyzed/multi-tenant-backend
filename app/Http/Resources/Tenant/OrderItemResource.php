@@ -28,6 +28,7 @@ class OrderItemResource extends Resource
             'product_name' => $this->product_name,
             'product_sku' => $this->product_sku,
             'quantity' => $this->quantity,
+            'quantity_fulfilled' => $this->quantity_fulfilled,
             'unit_price' => $this->unit_price,
             'line_total' => $this->line_total,
         ];

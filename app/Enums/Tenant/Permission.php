@@ -37,6 +37,16 @@ enum Permission: string
     case OrdersUpdate = 'orders.update';
     case OrdersDelete = 'orders.delete';
 
+    case QuotationsView = 'quotations.view';
+    case QuotationsCreate = 'quotations.create';
+    case QuotationsUpdate = 'quotations.update';
+    case QuotationsDelete = 'quotations.delete';
+
+    case CreditNotesView = 'credit_notes.view';
+    case CreditNotesCreate = 'credit_notes.create';
+    case CreditNotesUpdate = 'credit_notes.update';
+    case CreditNotesDelete = 'credit_notes.delete';
+
     case InvoicesView = 'invoices.view';
     case InvoicesCreate = 'invoices.create';
     case InvoicesUpdate = 'invoices.update';
@@ -78,6 +88,104 @@ enum Permission: string
     case CollectionsUpdate = 'collections.update';
     case CollectionsDelete = 'collections.delete';
 
+    case PriceListsView = 'price_lists.view';
+    case PriceListsCreate = 'price_lists.create';
+    case PriceListsUpdate = 'price_lists.update';
+    case PriceListsDelete = 'price_lists.delete';
+
+    case PromotionsView = 'promotions.view';
+    case PromotionsCreate = 'promotions.create';
+    case PromotionsUpdate = 'promotions.update';
+    case PromotionsDelete = 'promotions.delete';
+
+    case SuppliersView = 'suppliers.view';
+    case SuppliersCreate = 'suppliers.create';
+    case SuppliersUpdate = 'suppliers.update';
+    case SuppliersDelete = 'suppliers.delete';
+
+    case PurchaseOrdersView = 'purchase_orders.view';
+    case PurchaseOrdersCreate = 'purchase_orders.create';
+    case PurchaseOrdersUpdate = 'purchase_orders.update';
+    case PurchaseOrdersDelete = 'purchase_orders.delete';
+    case PurchaseOrdersApprove = 'purchase_orders.approve';
+
+    case GoodsReceiptsView = 'goods_receipts.view';
+    case GoodsReceiptsCreate = 'goods_receipts.create';
+    case GoodsReceiptsUpdate = 'goods_receipts.update';
+    case GoodsReceiptsDelete = 'goods_receipts.delete';
+
+    case SupplierReturnsView = 'supplier_returns.view';
+    case SupplierReturnsCreate = 'supplier_returns.create';
+    case SupplierReturnsUpdate = 'supplier_returns.update';
+    case SupplierReturnsDelete = 'supplier_returns.delete';
+
+    case ReturnsView = 'returns.view';
+    case ReturnsCreate = 'returns.create';
+    case ReturnsUpdate = 'returns.update';
+    case ReturnsDelete = 'returns.delete';
+    case ReturnsApprove = 'returns.approve';
+
+    case ShippingCarriersView = 'shipping_carriers.view';
+    case ShippingCarriersCreate = 'shipping_carriers.create';
+    case ShippingCarriersUpdate = 'shipping_carriers.update';
+    case ShippingCarriersDelete = 'shipping_carriers.delete';
+
+    case ShippingZonesView = 'shipping_zones.view';
+    case ShippingZonesCreate = 'shipping_zones.create';
+    case ShippingZonesUpdate = 'shipping_zones.update';
+    case ShippingZonesDelete = 'shipping_zones.delete';
+
+    case ShippingMethodsView = 'shipping_methods.view';
+    case ShippingMethodsCreate = 'shipping_methods.create';
+    case ShippingMethodsUpdate = 'shipping_methods.update';
+    case ShippingMethodsDelete = 'shipping_methods.delete';
+
+    case LeadsView = 'leads.view';
+    case LeadsCreate = 'leads.create';
+    case LeadsUpdate = 'leads.update';
+    case LeadsDelete = 'leads.delete';
+
+    case OpportunitiesView = 'opportunities.view';
+    case OpportunitiesCreate = 'opportunities.create';
+    case OpportunitiesUpdate = 'opportunities.update';
+    case OpportunitiesDelete = 'opportunities.delete';
+
+    case BillOfMaterialsView = 'bill_of_materials.view';
+    case BillOfMaterialsCreate = 'bill_of_materials.create';
+    case BillOfMaterialsUpdate = 'bill_of_materials.update';
+    case BillOfMaterialsDelete = 'bill_of_materials.delete';
+
+    case WorkOrdersView = 'work_orders.view';
+    case WorkOrdersCreate = 'work_orders.create';
+    case WorkOrdersUpdate = 'work_orders.update';
+    case WorkOrdersDelete = 'work_orders.delete';
+
+    case ApprovalsView = 'approvals.view';
+    case ApprovalsCreate = 'approvals.create';
+    case ApprovalsUpdate = 'approvals.update';
+    case ApprovalsDelete = 'approvals.delete';
+    case ApprovalsDecide = 'approvals.decide';
+
+    case WebhooksView = 'webhooks.view';
+    case WebhooksCreate = 'webhooks.create';
+    case WebhooksUpdate = 'webhooks.update';
+    case WebhooksDelete = 'webhooks.delete';
+
+    case DataJobsView = 'data_jobs.view';
+    case DataJobsCreate = 'data_jobs.create';
+    case DataJobsUpdate = 'data_jobs.update';
+    case DataJobsDelete = 'data_jobs.delete';
+
+    case ChannelsView = 'channels.view';
+    case ChannelsCreate = 'channels.create';
+    case ChannelsUpdate = 'channels.update';
+    case ChannelsDelete = 'channels.delete';
+
+    case PosSessionsView = 'pos_sessions.view';
+    case PosSessionsCreate = 'pos_sessions.create';
+    case PosSessionsUpdate = 'pos_sessions.update';
+    case PosSessionsDelete = 'pos_sessions.delete';
+
     case SettingsView = 'settings.view';
     case SettingsUpdate = 'settings.update';
 
@@ -107,6 +215,8 @@ enum Permission: string
             self::CustomerGroupsView,
             self::ProductsView,
             self::OrdersView,
+            self::QuotationsView,
+            self::CreditNotesView,
             self::InvoicesView,
             self::CategoriesView,
             self::TaxesView,
@@ -115,6 +225,25 @@ enum Permission: string
             self::EmployeesView,
             self::BrandsView,
             self::CollectionsView,
+            self::PriceListsView,
+            self::PromotionsView,
+            self::SuppliersView,
+            self::PurchaseOrdersView,
+            self::GoodsReceiptsView,
+            self::SupplierReturnsView,
+            self::ReturnsView,
+            self::ShippingCarriersView,
+            self::ShippingZonesView,
+            self::ShippingMethodsView,
+            self::LeadsView,
+            self::OpportunitiesView,
+            self::BillOfMaterialsView,
+            self::WorkOrdersView,
+            self::ApprovalsView,
+            self::WebhooksView,
+            self::DataJobsView,
+            self::ChannelsView,
+            self::PosSessionsView,
             self::SettingsView,
             self::ReportsView,
             self::BillingView,

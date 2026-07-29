@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Tenant;
 
 use App\Enums\Tenant\PriceListAssignmentType;
+use App\Models\Tenant\Channel;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\CustomerGroup;
 use App\Models\Tenant\PriceList;
@@ -230,7 +231,7 @@ final class PriceListService
         $exists = match ($type) {
             PriceListAssignmentType::Customer => Customer::query()->whereKey($id)->exists(),
             PriceListAssignmentType::CustomerGroup => CustomerGroup::query()->whereKey($id)->exists(),
-            PriceListAssignmentType::Channel => true,
+            PriceListAssignmentType::Channel => Channel::query()->whereKey($id)->exists(),
         };
 
         if (! $exists) {

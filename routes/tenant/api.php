@@ -2,34 +2,61 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Tenant\ApprovalRequestController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
+use App\Http\Controllers\Tenant\BillOfMaterialController;
 use App\Http\Controllers\Tenant\BranchController;
 use App\Http\Controllers\Tenant\BrandController;
 use App\Http\Controllers\Tenant\BusinessSettingController;
 use App\Http\Controllers\Tenant\CategoryController;
+use App\Http\Controllers\Tenant\ChannelController;
+use App\Http\Controllers\Tenant\ChannelInventoryController;
+use App\Http\Controllers\Tenant\ChannelProductPriceController;
 use App\Http\Controllers\Tenant\CollectionController;
+use App\Http\Controllers\Tenant\CreditNoteController;
+use App\Http\Controllers\Tenant\CrmActivityController;
 use App\Http\Controllers\Tenant\CustomerAddressController;
 use App\Http\Controllers\Tenant\CustomerContactController;
 use App\Http\Controllers\Tenant\CustomerController;
 use App\Http\Controllers\Tenant\CustomerGroupController;
 use App\Http\Controllers\Tenant\CustomerNoteController;
 use App\Http\Controllers\Tenant\CustomerTagController;
+use App\Http\Controllers\Tenant\DataJobController;
 use App\Http\Controllers\Tenant\EmployeeController;
+use App\Http\Controllers\Tenant\FulfilmentController;
+use App\Http\Controllers\Tenant\GoodsReceiptController;
 use App\Http\Controllers\Tenant\InventoryController;
+use App\Http\Controllers\Tenant\LeadController;
+use App\Http\Controllers\Tenant\OpportunityController;
 use App\Http\Controllers\Tenant\OrderController;
+use App\Http\Controllers\Tenant\OrderNoteController;
+use App\Http\Controllers\Tenant\PosSessionController;
+use App\Http\Controllers\Tenant\PriceListController;
 use App\Http\Controllers\Tenant\ProductController;
 use App\Http\Controllers\Tenant\ProductVariantController;
+use App\Http\Controllers\Tenant\PromotionController;
+use App\Http\Controllers\Tenant\PurchaseOrderController;
+use App\Http\Controllers\Tenant\QuotationController;
 use App\Http\Controllers\Tenant\ReportController;
+use App\Http\Controllers\Tenant\ReturnAuthorizationController;
 use App\Http\Controllers\Tenant\SalesInvoiceController;
+use App\Http\Controllers\Tenant\ShipmentController;
+use App\Http\Controllers\Tenant\ShippingCarrierController;
+use App\Http\Controllers\Tenant\ShippingMethodController;
+use App\Http\Controllers\Tenant\ShippingZoneController;
 use App\Http\Controllers\Tenant\StockAdjustmentReasonController;
 use App\Http\Controllers\Tenant\StoreConfigController;
+use App\Http\Controllers\Tenant\SupplierController;
+use App\Http\Controllers\Tenant\SupplierReturnController;
 use App\Http\Controllers\Tenant\TaxController;
 use App\Http\Controllers\Tenant\UserController;
 use App\Http\Controllers\Tenant\WarehouseBinController;
 use App\Http\Controllers\Tenant\WarehouseController;
 use App\Http\Controllers\Tenant\WarehouseTransferController;
 use App\Http\Controllers\Tenant\WarehouseZoneController;
+use App\Http\Controllers\Tenant\WebhookEndpointController;
+use App\Http\Controllers\Tenant\WorkOrderController;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -153,6 +180,58 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
     Route::apiResource('orders', OrderController::class)
         ->middlewareFor('store', 'entitlement:orders.max')
         ->names('tenant.orders');
+
+    Route::middleware(['feature:features.erp.pricing'])->group(function (): void {
+        Route::post('pricing/preview', [PriceListController::class, 'preview'])
+            ->name('tenant.pricing.preview');
+        Route::apiResource('price-lists', PriceListController::class)
+            ->names('tenant.price-lists');
+        Route::apiResource('promotions', PromotionController::class)
+            ->names('tenant.promotions');
+    });
+
+    Route::middleware(['feature:features.erp.sales_advanced'])->group(function (): void {
+        Route::post('quotations/{quotation}/send', [QuotationController::class, 'send'])
+            ->name('tenant.quotations.send');
+        Route::post('quotations/{quotation}/accept', [QuotationController::class, 'accept'])
+            ->name('tenant.quotations.accept');
+        Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])
+            ->name('tenant.quotations.reject');
+        Route::apiResource('quotations', QuotationController::class)
+            ->names('tenant.quotations');
+
+        Route::post('fulfilments/{fulfilment}/complete', [FulfilmentController::class, 'complete'])
+            ->name('tenant.fulfilments.complete');
+        Route::post('fulfilments/{fulfilment}/cancel', [FulfilmentController::class, 'cancel'])
+            ->name('tenant.fulfilments.cancel');
+        Route::apiResource('fulfilments', FulfilmentController::class)
+            ->only(['index', 'store', 'show', 'destroy'])
+            ->names('tenant.fulfilments');
+
+        Route::post('shipments/{shipment}/dispatch', [ShipmentController::class, 'dispatch'])
+            ->name('tenant.shipments.dispatch');
+        Route::post('shipments/{shipment}/deliver', [ShipmentController::class, 'deliver'])
+            ->name('tenant.shipments.deliver');
+        Route::post('shipments/{shipment}/cancel', [ShipmentController::class, 'cancel'])
+            ->name('tenant.shipments.cancel');
+        Route::apiResource('shipments', ShipmentController::class)
+            ->only(['index', 'store', 'show', 'destroy'])
+            ->names('tenant.shipments');
+
+        Route::post('credit-notes/{credit_note}/issue', [CreditNoteController::class, 'issue'])
+            ->name('tenant.credit-notes.issue');
+        Route::post('credit-notes/{credit_note}/void', [CreditNoteController::class, 'void'])
+            ->name('tenant.credit-notes.void');
+        Route::apiResource('credit-notes', CreditNoteController::class)
+            ->only(['index', 'store', 'show', 'destroy'])
+            ->parameters(['credit-notes' => 'credit_note'])
+            ->names('tenant.credit-notes');
+
+        Route::apiResource('orders.notes', OrderNoteController::class)
+            ->parameters(['notes' => 'note'])
+            ->names('tenant.orders.notes');
+    });
+
     Route::apiResource('sales-invoices', SalesInvoiceController::class)
         ->only(['index', 'show', 'update', 'destroy'])
         ->names('tenant.sales-invoices');
@@ -221,6 +300,152 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
             ->names('tenant.warehouse-transfers');
     });
 
+    Route::middleware(['feature:features.erp.purchasing'])->group(function (): void {
+        Route::post('purchase-orders/{purchase_order}/submit', [PurchaseOrderController::class, 'submit'])
+            ->name('tenant.purchase-orders.submit');
+        Route::post('purchase-orders/{purchase_order}/approve', [PurchaseOrderController::class, 'approve'])
+            ->name('tenant.purchase-orders.approve');
+        Route::post('purchase-orders/{purchase_order}/cancel', [PurchaseOrderController::class, 'cancel'])
+            ->name('tenant.purchase-orders.cancel');
+        Route::apiResource('purchase-orders', PurchaseOrderController::class)
+            ->parameters(['purchase-orders' => 'purchase_order'])
+            ->names('tenant.purchase-orders');
+
+        Route::post('goods-receipts/{goods_receipt}/post', [GoodsReceiptController::class, 'post'])
+            ->name('tenant.goods-receipts.post');
+        Route::post('goods-receipts/{goods_receipt}/cancel', [GoodsReceiptController::class, 'cancel'])
+            ->name('tenant.goods-receipts.cancel');
+        Route::apiResource('goods-receipts', GoodsReceiptController::class)
+            ->parameters(['goods-receipts' => 'goods_receipt'])
+            ->names('tenant.goods-receipts');
+
+        Route::post('supplier-returns/{supplier_return}/post', [SupplierReturnController::class, 'post'])
+            ->name('tenant.supplier-returns.post');
+        Route::post('supplier-returns/{supplier_return}/cancel', [SupplierReturnController::class, 'cancel'])
+            ->name('tenant.supplier-returns.cancel');
+        Route::apiResource('supplier-returns', SupplierReturnController::class)
+            ->parameters(['supplier-returns' => 'supplier_return'])
+            ->names('tenant.supplier-returns');
+
+        Route::apiResource('suppliers', SupplierController::class)
+            ->names('tenant.suppliers');
+    });
+
+    Route::middleware(['feature:features.erp.returns_shipping'])->group(function (): void {
+        Route::post('returns/{return_authorization}/submit', [ReturnAuthorizationController::class, 'submit'])
+            ->name('tenant.returns.submit');
+        Route::post('returns/{return_authorization}/approve', [ReturnAuthorizationController::class, 'approve'])
+            ->name('tenant.returns.approve');
+        Route::post('returns/{return_authorization}/receive', [ReturnAuthorizationController::class, 'receive'])
+            ->name('tenant.returns.receive');
+        Route::post('returns/{return_authorization}/refund', [ReturnAuthorizationController::class, 'refund'])
+            ->name('tenant.returns.refund');
+        Route::post('returns/{return_authorization}/cancel', [ReturnAuthorizationController::class, 'cancel'])
+            ->name('tenant.returns.cancel');
+        Route::apiResource('returns', ReturnAuthorizationController::class)
+            ->parameters(['returns' => 'return_authorization'])
+            ->names('tenant.returns');
+
+        Route::apiResource('shipping-carriers', ShippingCarrierController::class)
+            ->names('tenant.shipping-carriers');
+        Route::apiResource('shipping-zones', ShippingZoneController::class)
+            ->names('tenant.shipping-zones');
+        Route::apiResource('shipping-methods', ShippingMethodController::class)
+            ->names('tenant.shipping-methods');
+    });
+
+    Route::middleware(['feature:features.erp.crm'])->group(function (): void {
+        Route::post('leads/{lead}/convert', [LeadController::class, 'convert'])
+            ->name('tenant.leads.convert');
+        Route::apiResource('leads', LeadController::class)
+            ->names('tenant.leads');
+
+        Route::post('opportunities/{opportunity}/won', [OpportunityController::class, 'won'])
+            ->name('tenant.opportunities.won');
+        Route::post('opportunities/{opportunity}/lost', [OpportunityController::class, 'lost'])
+            ->name('tenant.opportunities.lost');
+        Route::apiResource('opportunities', OpportunityController::class)
+            ->names('tenant.opportunities');
+
+        Route::post('crm-activities/{crm_activity}/complete', [CrmActivityController::class, 'complete'])
+            ->name('tenant.crm-activities.complete');
+        Route::apiResource('crm-activities', CrmActivityController::class)
+            ->parameters(['crm-activities' => 'crm_activity'])
+            ->names('tenant.crm-activities');
+    });
+
+    Route::middleware(['feature:features.erp.manufacturing'])->group(function (): void {
+        Route::apiResource('bill-of-materials', BillOfMaterialController::class)
+            ->parameters(['bill-of-materials' => 'bill_of_material'])
+            ->names('tenant.bill-of-materials');
+
+        Route::post('work-orders/{work_order}/release', [WorkOrderController::class, 'release'])
+            ->name('tenant.work-orders.release');
+        Route::post('work-orders/{work_order}/complete', [WorkOrderController::class, 'complete'])
+            ->name('tenant.work-orders.complete');
+        Route::post('work-orders/{work_order}/cancel', [WorkOrderController::class, 'cancel'])
+            ->name('tenant.work-orders.cancel');
+        Route::apiResource('work-orders', WorkOrderController::class)
+            ->only(['index', 'store', 'show', 'destroy'])
+            ->parameters(['work-orders' => 'work_order'])
+            ->names('tenant.work-orders');
+    });
+
+    Route::middleware(['feature:features.erp.approvals'])->group(function (): void {
+        Route::post('approvals/{approval_request}/approve', [ApprovalRequestController::class, 'approve'])
+            ->name('tenant.approvals.approve');
+        Route::post('approvals/{approval_request}/reject', [ApprovalRequestController::class, 'reject'])
+            ->name('tenant.approvals.reject');
+        Route::post('approvals/{approval_request}/cancel', [ApprovalRequestController::class, 'cancel'])
+            ->name('tenant.approvals.cancel');
+        Route::apiResource('approvals', ApprovalRequestController::class)
+            ->only(['index', 'store', 'show', 'destroy'])
+            ->parameters(['approvals' => 'approval_request'])
+            ->names('tenant.approvals');
+    });
+
+    Route::middleware(['feature:features.erp.webhooks'])->group(function (): void {
+        Route::get('webhook-endpoints/{webhook_endpoint}/deliveries', [WebhookEndpointController::class, 'deliveries'])
+            ->name('tenant.webhook-endpoints.deliveries');
+        Route::apiResource('webhook-endpoints', WebhookEndpointController::class)
+            ->parameters(['webhook-endpoints' => 'webhook_endpoint'])
+            ->names('tenant.webhook-endpoints');
+
+        Route::post('data-jobs/{data_job}/cancel', [DataJobController::class, 'cancel'])
+            ->name('tenant.data-jobs.cancel');
+        Route::apiResource('data-jobs', DataJobController::class)
+            ->only(['index', 'store', 'show', 'destroy'])
+            ->parameters(['data-jobs' => 'data_job'])
+            ->names('tenant.data-jobs');
+    });
+
+    Route::middleware(['feature:features.erp.channels'])->group(function (): void {
+        Route::post('channels/{channel}/sync-inventory', [ChannelController::class, 'syncInventory'])
+            ->name('tenant.channels.sync-inventory');
+        Route::post('channels/{channel}/publish-product', [ChannelController::class, 'publishProduct'])
+            ->name('tenant.channels.publish-product');
+        Route::apiResource('channels', ChannelController::class)
+            ->names('tenant.channels');
+
+        Route::apiResource('channels.inventories', ChannelInventoryController::class)
+            ->only(['index', 'store', 'destroy'])
+            ->parameters(['inventories' => 'channel_inventory'])
+            ->names('tenant.channels.inventories');
+        Route::apiResource('channels.prices', ChannelProductPriceController::class)
+            ->only(['index', 'store', 'destroy'])
+            ->parameters(['prices' => 'channel_product_price'])
+            ->names('tenant.channels.prices');
+
+        Route::post('pos-sessions/{pos_session}/close', [PosSessionController::class, 'close'])
+            ->name('tenant.pos-sessions.close');
+        Route::post('pos-sessions/{pos_session}/sale', [PosSessionController::class, 'sale'])
+            ->name('tenant.pos-sessions.sale');
+        Route::apiResource('pos-sessions', PosSessionController::class)
+            ->only(['index', 'store', 'show', 'destroy'])
+            ->parameters(['pos-sessions' => 'pos_session'])
+            ->names('tenant.pos-sessions');
+    });
+
     Route::apiResource('employees', EmployeeController::class)
         ->middleware(['feature:features.erp.employees'])
         ->middlewareFor('store', 'entitlement:employees.max')
@@ -248,4 +473,10 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
     Route::get('reports/low-stock', [ReportController::class, 'lowStock'])
         ->middleware('feature:features.erp.reports')
         ->name('tenant.reports.low-stock');
+    Route::get('reports/inventory-valuation', [ReportController::class, 'inventoryValuation'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.inventory-valuation');
+    Route::get('reports/gross-profit', [ReportController::class, 'grossProfit'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.gross-profit');
 });
