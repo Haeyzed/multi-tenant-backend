@@ -35,6 +35,7 @@ class UpdatePromotionRequest extends FormRequest
             'currency' => ['nullable', 'string', 'size:3'],
             'priority' => ['sometimes', 'integer', 'min:0'],
             'min_subtotal' => ['nullable', 'integer', 'min:0'],
+            'buy_quantity' => ['nullable', 'integer', 'min:1'],
             'stackable' => ['sometimes', 'boolean'],
             'is_active' => ['sometimes', 'boolean'],
             'starts_at' => ['nullable', 'date'],

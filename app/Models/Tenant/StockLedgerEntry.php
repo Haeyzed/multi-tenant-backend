@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $warehouse_id
  * @property int $product_id
+ * @property int|null $stock_lot_id
+ * @property string|null $serial_number
  * @property int $quantity
  * @property int $quantity_after
  * @property StockMovementReason $reason
@@ -29,6 +31,8 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'warehouse_id',
     'product_id',
+    'stock_lot_id',
+    'serial_number',
     'quantity',
     'quantity_after',
     'reason',
@@ -69,6 +73,14 @@ class StockLedgerEntry extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * @return BelongsTo<StockLot, $this>
+     */
+    public function stockLot(): BelongsTo
+    {
+        return $this->belongsTo(StockLot::class);
     }
 
     /**

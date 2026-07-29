@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $currency
  * @property int $priority
  * @property int|null $min_subtotal
+ * @property int|null $buy_quantity
  * @property bool $stackable
  * @property bool $is_active
  * @property Carbon|null $starts_at
@@ -44,6 +45,7 @@ use Illuminate\Support\Carbon;
     'currency',
     'priority',
     'min_subtotal',
+    'buy_quantity',
     'stackable',
     'is_active',
     'starts_at',
@@ -64,6 +66,7 @@ class Promotion extends Model
             'value' => 'integer',
             'priority' => 'integer',
             'min_subtotal' => 'integer',
+            'buy_quantity' => 'integer',
             'stackable' => 'boolean',
             'is_active' => 'boolean',
             'starts_at' => 'datetime',

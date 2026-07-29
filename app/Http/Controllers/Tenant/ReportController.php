@@ -95,6 +95,50 @@ class ReportController extends Controller
         );
     }
 
+    /**
+     * @operationId stockAgeingReport
+     */
+    public function stockAgeing(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        $warehouseId = $request->input('warehouse_id');
+
+        return ApiResponse::success(
+            data: $this->reports->stockAgeing($warehouseId !== null ? (int) $warehouseId : null),
+            message: 'Stock ageing report retrieved successfully.',
+        );
+    }
+
+    /**
+     * @operationId purchaseSummaryReport
+     */
+    public function purchaseSummary(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        return ApiResponse::success(
+            data: $this->reports->purchaseSummary(
+                $this->date($request->input('from')),
+                $this->date($request->input('to')),
+            ),
+            message: 'Purchase summary retrieved successfully.',
+        );
+    }
+
+    /**
+     * @operationId apAgingReport
+     */
+    public function apAging(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        return ApiResponse::success(
+            data: $this->reports->apAging($this->date($request->input('as_of'))),
+            message: 'Accounts payable ageing report retrieved successfully.',
+        );
+    }
+
     private function date(mixed $value): ?Carbon
     {
         if ($value === null || $value === '') {

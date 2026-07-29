@@ -19,4 +19,5 @@ enum StockMovementReason: string
     case CustomerReturn = 'customer_return';
     case ManufacturingIssue = 'manufacturing_issue';
     case ManufacturingReceipt = 'manufacturing_receipt';
+    case CycleCount = 'cycle_count';
 }

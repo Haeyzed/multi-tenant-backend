@@ -8,4 +8,5 @@ enum PromotionType: string
 {
     case PercentOff = 'percent_off';
     case FixedAmount = 'fixed_amount';
+    case BuyXGetY = 'buy_x_get_y';
 }

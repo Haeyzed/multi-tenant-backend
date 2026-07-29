@@ -70,12 +70,12 @@ final class PricingEngine
         }
 
         $beforePromotion = $unit;
-        $promotion = $this->resolvePromotion($product, $customer, $unit * $quantity, $product->currency, $at);
+        $promotion = $this->resolvePromotion($product, $customer, $unit * $quantity, $product->currency, $at, $quantity);
         $promotionId = null;
         $promotionCode = null;
 
         if ($promotion !== null) {
-            $unit = $this->applyPromotion($unit, $promotion);
+            $unit = $this->applyPromotion($unit, $promotion, $quantity);
             $promotionId = $promotion->id;
             $promotionCode = $promotion->code;
         }
@@ -204,6 +204,7 @@ final class PricingEngine
         int $lineSubtotal,
         string $currency,
         Carbon $at,
+        int $quantity = 1,
     ): ?Promotion {
         $promotions = Promotion::query()
             ->currentlyEffective($at)
@@ -217,7 +218,13 @@ final class PricingEngine
                 continue;
             }
 
-            if ($promotion->min_subtotal !== null && $lineSubtotal < $promotion->min_subtotal) {
+            if ($promotion->type === PromotionType::BuyXGetY) {
+                $buyQuantity = (int) ($promotion->buy_quantity ?? 0);
+
+                if ($buyQuantity < 1 || $quantity < $buyQuantity) {
+                    continue;
+                }
+            } elseif ($promotion->min_subtotal !== null && $lineSubtotal < $promotion->min_subtotal) {
                 continue;
             }
 
@@ -239,11 +246,22 @@ final class PricingEngine
         return null;
     }
 
-    private function applyPromotion(int $unitPrice, Promotion $promotion): int
+    private function applyPromotion(int $unitPrice, Promotion $promotion, int $quantity = 1): int
     {
         return match ($promotion->type) {
             PromotionType::PercentOff => (int) round($unitPrice * (100 - min(100, $promotion->value)) / 100),
             PromotionType::FixedAmount => max(0, $unitPrice - $promotion->value),
+            PromotionType::BuyXGetY => $this->applyBuyXGetY($unitPrice, $promotion, $quantity),
         };
+    }
+
+    private function applyBuyXGetY(int $unitPrice, Promotion $promotion, int $quantity): int
+    {
+        $buyQuantity = max(1, (int) ($promotion->buy_quantity ?? 1));
+        $getQuantity = max(1, $promotion->value);
+        $freeUnits = (int) floor($quantity / $buyQuantity) * $getQuantity;
+        $paidUnits = max(0, $quantity - $freeUnits);
+
+        return $quantity > 0 ? (int) round(($paidUnits * $unitPrice) / $quantity) : $unitPrice;
     }
 }

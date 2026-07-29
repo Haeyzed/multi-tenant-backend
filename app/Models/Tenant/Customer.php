@@ -12,8 +12,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * Tenant CRM customer record.
@@ -40,6 +43,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, CustomerContact> $contacts
  * @property-read Collection<int, CustomerNote> $crmNotes
  * @property-read Collection<int, CustomerTag> $tags
+ * @property-read CustomerWallet|null $wallet
  */
 #[Fillable([
     'code',
@@ -58,7 +62,16 @@ use Illuminate\Support\Carbon;
 class Customer extends Model
 {
     /** @use HasFactory<CustomerFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, LogsActivity, SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('tenant')
+            ->logOnly(['name', 'email', 'phone', 'company', 'customer_group_id', 'credit_limit', 'is_active'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
+    }
 
     /**
      * @return array<string, string>
@@ -118,5 +131,13 @@ class Customer extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(CustomerTag::class, 'customer_tag')->withTimestamps();
+    }
+
+    /**
+     * @return HasOne<CustomerWallet, $this>
+     */
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(CustomerWallet::class);
     }
 }

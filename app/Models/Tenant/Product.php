@@ -16,6 +16,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Tenant product catalog entry.
@@ -59,7 +64,10 @@ use Illuminate\Support\Carbon;
  * @property-read EloquentCollection<int, Collection> $collections
  * @property-read EloquentCollection<int, ProductAttributeValue> $attributeValues
  * @property-read UnitOfMeasure|null $unitOfMeasure
- * @property-read EloquentCollection<int, ProductRelation> $productRelations
+ * @property-read EloquentCollection<int, ProductRelation> $relations
+ * @property-read EloquentCollection<int, ProductMedia> $urlMedia
+ * @property-read EloquentCollection<int, Media> $media
+ * @property-read EloquentCollection<int, ProductUom> $productUoms
  * @property-read EloquentCollection<int, ProductOptionValue> $optionValues
  * @property-read EloquentCollection<int, OrderItem> $orderItems
  * @property-read EloquentCollection<int, WarehouseStock> $warehouseStocks
@@ -89,10 +97,34 @@ use Illuminate\Support\Carbon;
     'published_at',
     'scheduled_at',
 ])]
-class Product extends Model
+class Product extends Model implements HasMedia
 {
     /** @use HasFactory<ProductFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('gallery');
+        $this->addMediaCollection('documents');
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->performOnCollections('gallery')
+            ->nonQueued();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('tenant')
+            ->logOnly(['sku', 'name', 'status', 'currency', 'unit_price', 'average_cost', 'stock_quantity', 'is_active'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
+    }
 
     /**
      * @return array<string, string>
@@ -194,6 +226,22 @@ class Product extends Model
     public function productRelations(): HasMany
     {
         return $this->hasMany(ProductRelation::class)->orderBy('position');
+    }
+
+    /**
+     * @return HasMany<ProductMedia, $this>
+     */
+    public function urlMedia(): HasMany
+    {
+        return $this->hasMany(ProductMedia::class)->orderBy('position');
+    }
+
+    /**
+     * @return HasMany<ProductUom, $this>
+     */
+    public function productUoms(): HasMany
+    {
+        return $this->hasMany(ProductUom::class);
     }
 
     /**

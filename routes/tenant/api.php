@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\ApprovalRequestController;
+use App\Http\Controllers\Tenant\AttributeController;
+use App\Http\Controllers\Tenant\AttributeGroupController;
+use App\Http\Controllers\Tenant\AttributeValueController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
 use App\Http\Controllers\Tenant\BillOfMaterialController;
@@ -22,34 +25,48 @@ use App\Http\Controllers\Tenant\CustomerController;
 use App\Http\Controllers\Tenant\CustomerGroupController;
 use App\Http\Controllers\Tenant\CustomerNoteController;
 use App\Http\Controllers\Tenant\CustomerTagController;
+use App\Http\Controllers\Tenant\CustomerWalletController;
 use App\Http\Controllers\Tenant\DataJobController;
 use App\Http\Controllers\Tenant\EmployeeController;
+use App\Http\Controllers\Tenant\ExchangeRateController;
 use App\Http\Controllers\Tenant\FulfilmentController;
 use App\Http\Controllers\Tenant\GoodsReceiptController;
 use App\Http\Controllers\Tenant\InventoryController;
 use App\Http\Controllers\Tenant\LeadController;
+use App\Http\Controllers\Tenant\NotificationController;
 use App\Http\Controllers\Tenant\OpportunityController;
 use App\Http\Controllers\Tenant\OrderController;
 use App\Http\Controllers\Tenant\OrderNoteController;
 use App\Http\Controllers\Tenant\PosSessionController;
 use App\Http\Controllers\Tenant\PriceListController;
+use App\Http\Controllers\Tenant\ProductAttributeController;
 use App\Http\Controllers\Tenant\ProductController;
+use App\Http\Controllers\Tenant\ProductMediaController;
+use App\Http\Controllers\Tenant\ProductRelationController;
 use App\Http\Controllers\Tenant\ProductVariantController;
 use App\Http\Controllers\Tenant\PromotionController;
 use App\Http\Controllers\Tenant\PurchaseOrderController;
+use App\Http\Controllers\Tenant\PurchaseRequestController;
 use App\Http\Controllers\Tenant\QuotationController;
 use App\Http\Controllers\Tenant\ReportController;
 use App\Http\Controllers\Tenant\ReturnAuthorizationController;
 use App\Http\Controllers\Tenant\SalesInvoiceController;
+use App\Http\Controllers\Tenant\SalesPaymentController;
 use App\Http\Controllers\Tenant\ShipmentController;
 use App\Http\Controllers\Tenant\ShippingCarrierController;
 use App\Http\Controllers\Tenant\ShippingMethodController;
 use App\Http\Controllers\Tenant\ShippingZoneController;
 use App\Http\Controllers\Tenant\StockAdjustmentReasonController;
+use App\Http\Controllers\Tenant\StockCountController;
+use App\Http\Controllers\Tenant\StockLotController;
+use App\Http\Controllers\Tenant\StockSerialController;
 use App\Http\Controllers\Tenant\StoreConfigController;
 use App\Http\Controllers\Tenant\SupplierController;
+use App\Http\Controllers\Tenant\SupplierInvoiceController;
+use App\Http\Controllers\Tenant\SupplierPaymentController;
 use App\Http\Controllers\Tenant\SupplierReturnController;
 use App\Http\Controllers\Tenant\TaxController;
+use App\Http\Controllers\Tenant\UnitOfMeasureController;
 use App\Http\Controllers\Tenant\UserController;
 use App\Http\Controllers\Tenant\WarehouseBinController;
 use App\Http\Controllers\Tenant\WarehouseController;
@@ -243,6 +260,42 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
         Route::apiResource('brands', BrandController::class)
             ->names('tenant.brands');
 
+        Route::apiResource('attribute-groups', AttributeGroupController::class)
+            ->names('tenant.attribute-groups');
+
+        Route::apiResource('attributes.values', AttributeValueController::class)
+            ->parameters(['values' => 'value'])
+            ->names('tenant.attributes.values');
+
+        Route::apiResource('attributes', AttributeController::class)
+            ->names('tenant.attributes');
+
+        Route::apiResource('units-of-measure', UnitOfMeasureController::class)
+            ->parameters(['units-of-measure' => 'unit_of_measure'])
+            ->names('tenant.units-of-measure');
+
+        Route::get('products/{product}/uoms', [UnitOfMeasureController::class, 'indexProductUoms'])
+            ->name('tenant.products.uoms.index');
+        Route::post('products/{product}/uoms', [UnitOfMeasureController::class, 'attachProductUom'])
+            ->name('tenant.products.uoms.store');
+        Route::put('products/{product}/uoms/{product_uom}', [UnitOfMeasureController::class, 'updateProductUom'])
+            ->name('tenant.products.uoms.update');
+        Route::delete('products/{product}/uoms/{product_uom}', [UnitOfMeasureController::class, 'detachProductUom'])
+            ->name('tenant.products.uoms.destroy');
+
+        Route::put('products/{product}/attributes', [ProductAttributeController::class, 'update'])
+            ->name('tenant.products.attributes.update');
+
+        Route::apiResource('products.relations', ProductRelationController::class)
+            ->parameters(['relations' => 'relation'])
+            ->names('tenant.products.relations');
+
+        Route::post('products/{product}/media/upload', [ProductMediaController::class, 'upload'])
+            ->name('tenant.products.media.upload');
+        Route::apiResource('products.media', ProductMediaController::class)
+            ->parameters(['media' => 'medium'])
+            ->names('tenant.products.media');
+
         Route::post('collections/{collection}/sync-rules', [CollectionController::class, 'syncRules'])
             ->name('tenant.collections.sync-rules');
         Route::put('collections/{collection}/products', [CollectionController::class, 'syncProducts'])
@@ -329,6 +382,27 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
 
         Route::apiResource('suppliers', SupplierController::class)
             ->names('tenant.suppliers');
+
+        Route::post('purchase-requests/{purchase_request}/submit', [PurchaseRequestController::class, 'submit'])
+            ->name('tenant.purchase-requests.submit');
+        Route::post('purchase-requests/{purchase_request}/approve', [PurchaseRequestController::class, 'approve'])
+            ->name('tenant.purchase-requests.approve');
+        Route::post('purchase-requests/{purchase_request}/reject', [PurchaseRequestController::class, 'reject'])
+            ->name('tenant.purchase-requests.reject');
+        Route::post('purchase-requests/{purchase_request}/convert', [PurchaseRequestController::class, 'convert'])
+            ->name('tenant.purchase-requests.convert');
+        Route::apiResource('purchase-requests', PurchaseRequestController::class)
+            ->parameters(['purchase-requests' => 'purchase_request'])
+            ->names('tenant.purchase-requests');
+    });
+
+    Route::middleware(['feature:features.erp.notifications'])->group(function (): void {
+        Route::get('notifications', [NotificationController::class, 'index'])
+            ->name('tenant.notifications.index');
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
+            ->name('tenant.notifications.read');
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+            ->name('tenant.notifications.read-all');
     });
 
     Route::middleware(['feature:features.erp.returns_shipping'])->group(function (): void {
@@ -446,6 +520,55 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
             ->names('tenant.pos-sessions');
     });
 
+    Route::middleware(['feature:features.erp.accounts_payable'])->group(function (): void {
+        Route::post('supplier-invoices/from-purchase-order', [SupplierInvoiceController::class, 'issueFromPurchaseOrder'])
+            ->name('tenant.supplier-invoices.from-purchase-order');
+        Route::post('supplier-invoices/{supplier_invoice}/issue', [SupplierInvoiceController::class, 'issue'])
+            ->name('tenant.supplier-invoices.issue');
+        Route::apiResource('supplier-invoices', SupplierInvoiceController::class)
+            ->parameters(['supplier-invoices' => 'supplier_invoice'])
+            ->names('tenant.supplier-invoices');
+
+        Route::apiResource('supplier-payments', SupplierPaymentController::class)
+            ->parameters(['supplier-payments' => 'supplier_payment'])
+            ->names('tenant.supplier-payments');
+    });
+
+    Route::middleware(['feature:features.erp.finance_advanced'])->group(function (): void {
+        Route::apiResource('sales-payments', SalesPaymentController::class)
+            ->parameters(['sales-payments' => 'sales_payment'])
+            ->names('tenant.sales-payments');
+
+        Route::apiResource('exchange-rates', ExchangeRateController::class)
+            ->only(['index', 'store', 'update'])
+            ->parameters(['exchange-rates' => 'exchange_rate'])
+            ->names('tenant.exchange-rates');
+
+        Route::get('customers/{customer}/wallet', [CustomerWalletController::class, 'show'])
+            ->name('tenant.customers.wallet.show');
+        Route::post('customers/{customer}/wallet/credit', [CustomerWalletController::class, 'credit'])
+            ->name('tenant.customers.wallet.credit');
+        Route::post('customers/{customer}/wallet/debit', [CustomerWalletController::class, 'debit'])
+            ->name('tenant.customers.wallet.debit');
+    });
+
+    Route::middleware(['feature:features.erp.inventory_advanced'])->group(function (): void {
+        Route::apiResource('stock-lots', StockLotController::class)
+            ->only(['index', 'show', 'store'])
+            ->parameters(['stock-lots' => 'stock_lot'])
+            ->names('tenant.stock-lots');
+        Route::post('stock-counts/{stock_count}/post', [StockCountController::class, 'post'])
+            ->name('tenant.stock-counts.post');
+        Route::apiResource('stock-counts', StockCountController::class)
+            ->only(['index', 'show', 'store', 'update'])
+            ->parameters(['stock-counts' => 'stock_count'])
+            ->names('tenant.stock-counts');
+        Route::apiResource('stock-serials', StockSerialController::class)
+            ->only(['index', 'show'])
+            ->parameters(['stock-serials' => 'stock_serial'])
+            ->names('tenant.stock-serials');
+    });
+
     Route::apiResource('employees', EmployeeController::class)
         ->middleware(['feature:features.erp.employees'])
         ->middlewareFor('store', 'entitlement:employees.max')
@@ -479,4 +602,13 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
     Route::get('reports/gross-profit', [ReportController::class, 'grossProfit'])
         ->middleware('feature:features.erp.reports')
         ->name('tenant.reports.gross-profit');
+    Route::get('reports/stock-ageing', [ReportController::class, 'stockAgeing'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.stock-ageing');
+    Route::get('reports/purchase-summary', [ReportController::class, 'purchaseSummary'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.purchase-summary');
+    Route::get('reports/ap-aging', [ReportController::class, 'apAging'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.ap-aging');
 });

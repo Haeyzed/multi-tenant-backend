@@ -83,6 +83,16 @@ enum Permission: string
     case BrandsUpdate = 'brands.update';
     case BrandsDelete = 'brands.delete';
 
+    case AttributesView = 'attributes.view';
+    case AttributesCreate = 'attributes.create';
+    case AttributesUpdate = 'attributes.update';
+    case AttributesDelete = 'attributes.delete';
+
+    case UnitsOfMeasureView = 'units_of_measure.view';
+    case UnitsOfMeasureCreate = 'units_of_measure.create';
+    case UnitsOfMeasureUpdate = 'units_of_measure.update';
+    case UnitsOfMeasureDelete = 'units_of_measure.delete';
+
     case CollectionsView = 'collections.view';
     case CollectionsCreate = 'collections.create';
     case CollectionsUpdate = 'collections.update';
@@ -108,6 +118,11 @@ enum Permission: string
     case PurchaseOrdersUpdate = 'purchase_orders.update';
     case PurchaseOrdersDelete = 'purchase_orders.delete';
     case PurchaseOrdersApprove = 'purchase_orders.approve';
+
+    case PurchaseRequestsView = 'purchase_requests.view';
+    case PurchaseRequestsCreate = 'purchase_requests.create';
+    case PurchaseRequestsUpdate = 'purchase_requests.update';
+    case PurchaseRequestsApprove = 'purchase_requests.approve';
 
     case GoodsReceiptsView = 'goods_receipts.view';
     case GoodsReceiptsCreate = 'goods_receipts.create';
@@ -186,10 +201,42 @@ enum Permission: string
     case PosSessionsUpdate = 'pos_sessions.update';
     case PosSessionsDelete = 'pos_sessions.delete';
 
+    case StockLotsView = 'stock_lots.view';
+    case StockLotsCreate = 'stock_lots.create';
+    case StockLotsUpdate = 'stock_lots.update';
+
+    case StockCountsView = 'stock_counts.view';
+    case StockCountsCreate = 'stock_counts.create';
+    case StockCountsUpdate = 'stock_counts.update';
+    case StockCountsPost = 'stock_counts.post';
+
+    case SalesPaymentsView = 'sales_payments.view';
+    case SalesPaymentsCreate = 'sales_payments.create';
+    case SalesPaymentsUpdate = 'sales_payments.update';
+
+    case SupplierInvoicesView = 'supplier_invoices.view';
+    case SupplierInvoicesCreate = 'supplier_invoices.create';
+    case SupplierInvoicesUpdate = 'supplier_invoices.update';
+    case SupplierInvoicesDelete = 'supplier_invoices.delete';
+
+    case SupplierPaymentsView = 'supplier_payments.view';
+    case SupplierPaymentsCreate = 'supplier_payments.create';
+    case SupplierPaymentsUpdate = 'supplier_payments.update';
+
+    case ExchangeRatesView = 'exchange_rates.view';
+    case ExchangeRatesCreate = 'exchange_rates.create';
+    case ExchangeRatesUpdate = 'exchange_rates.update';
+
+    case WalletsView = 'wallets.view';
+    case WalletsUpdate = 'wallets.update';
+
     case SettingsView = 'settings.view';
     case SettingsUpdate = 'settings.update';
 
     case ReportsView = 'reports.view';
+
+    case NotificationsView = 'notifications.view';
+    case NotificationsUpdate = 'notifications.update';
 
     case BillingView = 'billing.view';
     case BillingManage = 'billing.manage';
@@ -224,11 +271,14 @@ enum Permission: string
             self::TransfersView,
             self::EmployeesView,
             self::BrandsView,
+            self::AttributesView,
+            self::UnitsOfMeasureView,
             self::CollectionsView,
             self::PriceListsView,
             self::PromotionsView,
             self::SuppliersView,
             self::PurchaseOrdersView,
+            self::PurchaseRequestsView,
             self::GoodsReceiptsView,
             self::SupplierReturnsView,
             self::ReturnsView,
@@ -244,8 +294,16 @@ enum Permission: string
             self::DataJobsView,
             self::ChannelsView,
             self::PosSessionsView,
+            self::StockLotsView,
+            self::StockCountsView,
+            self::SalesPaymentsView,
+            self::SupplierInvoicesView,
+            self::SupplierPaymentsView,
+            self::ExchangeRatesView,
+            self::WalletsView,
             self::SettingsView,
             self::ReportsView,
+            self::NotificationsView,
             self::BillingView,
         ];
     }

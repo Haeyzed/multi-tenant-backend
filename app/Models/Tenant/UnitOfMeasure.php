@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Product> $products
+ * @property-read Collection<int, ProductUom> $productUoms
  */
 #[Fillable(['name', 'code', 'is_active'])]
 class UnitOfMeasure extends Model
@@ -42,5 +43,13 @@ class UnitOfMeasure extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    /**
+     * @return HasMany<ProductUom, $this>
+     */
+    public function productUoms(): HasMany
+    {
+        return $this->hasMany(ProductUom::class);
     }
 }

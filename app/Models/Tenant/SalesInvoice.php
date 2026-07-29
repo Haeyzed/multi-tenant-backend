@@ -7,11 +7,15 @@ namespace App\Models\Tenant;
 use App\Enums\Tenant\SalesInvoiceStatus;
 use Database\Factories\Tenant\SalesInvoiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * Tenant sales invoice generated from a confirmed order.
@@ -33,6 +37,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $deleted_at
  * @property-read Order $order
  * @property-read Customer $customer
+ * @property-read Collection<int, SalesPaymentAllocation> $paymentAllocations
  */
 #[Fillable([
     'number',
@@ -50,7 +55,16 @@ use Illuminate\Support\Carbon;
 class SalesInvoice extends Model
 {
     /** @use HasFactory<SalesInvoiceFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, LogsActivity, SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('tenant')
+            ->logOnly(['number', 'order_id', 'customer_id', 'status', 'currency', 'subtotal', 'tax', 'total', 'issued_at', 'paid_at'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
+    }
 
     /**
      * @return array<string, string>
@@ -81,5 +95,13 @@ class SalesInvoice extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * @return HasMany<SalesPaymentAllocation, $this>
+     */
+    public function paymentAllocations(): HasMany
+    {
+        return $this->hasMany(SalesPaymentAllocation::class);
     }
 }

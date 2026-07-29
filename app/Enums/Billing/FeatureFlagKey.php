@@ -24,6 +24,11 @@ enum FeatureFlagKey: string
     case ErpApprovals = 'features.erp.approvals';
     case ErpWebhooks = 'features.erp.webhooks';
     case ErpChannels = 'features.erp.channels';
+    case ErpInventoryAdvanced = 'features.erp.inventory_advanced';
+    case ErpInventoryFifo = 'features.erp.inventory_fifo';
+    case ErpNotifications = 'features.erp.notifications';
+    case ErpFinanceAdvanced = 'features.erp.finance_advanced';
+    case ErpAccountsPayable = 'features.erp.accounts_payable';
     case BillingSelfServe = 'features.billing.self_serve';
     case TenantNotifications = 'features.notifications.tenant';
 
@@ -53,6 +58,11 @@ enum FeatureFlagKey: string
             self::ErpApprovals => 'Enable configurable approval requests for tenant workflows.',
             self::ErpWebhooks => 'Enable tenant outbound webhooks and import/export data jobs.',
             self::ErpChannels => 'Enable sales channels, channel inventory/pricing, and POS sessions.',
+            self::ErpInventoryAdvanced => 'Enable lot tracking, serial numbers, cycle counts, and stock ageing reports.',
+            self::ErpInventoryFifo => 'Use FIFO lot-based inventory valuation instead of weighted average cost.',
+            self::ErpNotifications => 'Enable in-app ERP notifications for tenant users.',
+            self::ErpFinanceAdvanced => 'Enable sales payments, exchange rates, customer wallets, and credit limit enforcement.',
+            self::ErpAccountsPayable => 'Enable supplier invoices, supplier payments, and accounts payable ageing reports.',
             self::BillingSelfServe => 'Allow tenants to subscribe and manage billing themselves.',
             self::TenantNotifications => 'Send billing lifecycle emails to tenant admins.',
         };

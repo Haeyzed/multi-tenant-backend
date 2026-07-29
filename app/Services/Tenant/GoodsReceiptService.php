@@ -16,6 +16,7 @@ use App\Models\Tenant\GoodsReceiptItem;
 use App\Models\Tenant\LandedCostComponent;
 use App\Models\Tenant\PurchaseOrder;
 use App\Models\Tenant\PurchaseOrderItem;
+use App\Models\Tenant\StockLot;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -223,7 +224,23 @@ final class GoodsReceiptService
                     notes: "Goods receipt {$goodsReceipt->number}",
                 );
 
-                $this->valuation->receive($item->product, $item->quantity, $landedUnitCost);
+                /** @var StockLot $lot */
+                $lot = StockLot::query()->firstOrNew([
+                    'warehouse_id' => $goodsReceipt->warehouse_id,
+                    'product_id' => $item->product_id,
+                    'lot_number' => "{$goodsReceipt->number}-{$item->id}",
+                ]);
+
+                if (! $lot->exists) {
+                    $lot->quantity = 0;
+                    $lot->received_at = now();
+                }
+
+                $lot->quantity += $item->quantity;
+                $lot->unit_cost = $landedUnitCost;
+                $lot->save();
+
+                $this->valuation->receive($item->product, $item->quantity, $landedUnitCost, $lot);
 
                 $item->update(['landed_unit_cost' => $landedUnitCost]);
                 $poItem->increment('quantity_received', $item->quantity);

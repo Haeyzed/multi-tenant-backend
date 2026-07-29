@@ -31,6 +31,7 @@ class PromotionResource extends Resource
             'currency' => $this->currency,
             'priority' => $this->priority,
             'min_subtotal' => $this->min_subtotal,
+            'buy_quantity' => $this->buy_quantity,
             'stackable' => $this->stackable,
             'is_active' => $this->is_active,
             'starts_at' => $this->starts_at,

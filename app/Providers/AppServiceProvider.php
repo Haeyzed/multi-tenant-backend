@@ -5,10 +5,17 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Contracts\Tenant\InventoryValuationStrategy;
+use App\Enums\Billing\FeatureFlagKey;
 use App\Events\Tenant\Erp\ApprovalDecided;
 use App\Events\Tenant\Erp\OrderConfirmed;
+use App\Events\Tenant\Erp\PaymentRecorded;
+use App\Events\Tenant\Erp\PurchaseRequestApproved;
+use App\Events\Tenant\Erp\StockCountPosted;
+use App\Events\Tenant\Erp\SupplierInvoiceIssued;
+use App\Events\Tenant\Erp\SupplierPaymentRecorded;
 use App\Events\Tenant\Erp\WorkOrderCompleted;
 use App\Listeners\DispatchTenantWebhooks;
+use App\Listeners\Tenant\NotifyOnErpEvent;
 use App\Models\Central\User as CentralUser;
 use App\Models\Coupon;
 use App\Models\Plan;
@@ -17,7 +24,9 @@ use App\Models\Tenant\User as TenantUser;
 use App\Policies\Central\CouponPolicy;
 use App\Policies\Central\PlanPolicy;
 use App\Policies\Central\SubscriptionPolicy;
+use App\Services\Central\FeatureFlagService;
 use App\Services\Central\TenantApiQuotaService;
+use App\Services\Tenant\FifoCostService;
 use App\Services\Tenant\WeightedAverageCostService;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -39,7 +48,15 @@ class AppServiceProvider extends ServiceProvider
     {
         Scramble::ignoreDefaultRoutes();
 
-        $this->app->bind(InventoryValuationStrategy::class, WeightedAverageCostService::class);
+        $this->app->bind(InventoryValuationStrategy::class, function ($app): InventoryValuationStrategy {
+            $flags = $app->make(FeatureFlagService::class);
+
+            if ($flags->enabled(FeatureFlagKey::ErpInventoryFifo, false)) {
+                return $app->make(FifoCostService::class);
+            }
+
+            return $app->make(WeightedAverageCostService::class);
+        });
     }
 
     public function boot(): void
@@ -50,6 +67,18 @@ class AppServiceProvider extends ServiceProvider
         $this->configureApiDocumentation();
         $this->configurePolicies();
         $this->configureWebhookListeners();
+        $this->configureErpNotificationListeners();
+    }
+
+    private function configureErpNotificationListeners(): void
+    {
+        $listener = NotifyOnErpEvent::class;
+
+        Event::listen(PurchaseRequestApproved::class, [$listener, 'handlePurchaseRequestApproved']);
+        Event::listen(PaymentRecorded::class, [$listener, 'handlePaymentRecorded']);
+        Event::listen(StockCountPosted::class, [$listener, 'handleStockCountPosted']);
+        Event::listen(SupplierPaymentRecorded::class, [$listener, 'handleSupplierPaymentRecorded']);
+        Event::listen(SupplierInvoiceIssued::class, [$listener, 'handleSupplierInvoiceIssued']);
     }
 
     private function configureWebhookListeners(): void

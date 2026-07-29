@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Activity;
+use App\Models\Tenant\Activity as TenantActivity;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
@@ -109,11 +111,17 @@ class TenancyServiceProvider extends ServiceProvider
             Events\InitializingTenancy::class => [],
             Events\TenancyInitialized::class => [
                 Listeners\BootstrapTenancy::class,
+                function (): void {
+                    config(['activitylog.activity_model' => TenantActivity::class]);
+                },
             ],
 
             Events\EndingTenancy::class => [],
             Events\TenancyEnded::class => [
                 Listeners\RevertToCentralContext::class,
+                function (): void {
+                    config(['activitylog.activity_model' => Activity::class]);
+                },
             ],
 
             Events\BootstrappingTenancy::class => [],

@@ -33,6 +33,8 @@ final class StockLedgerService
         ?Model $reference = null,
         ?string $notes = null,
         bool $allowNegative = false,
+        ?int $stockLotId = null,
+        ?string $serialNumber = null,
     ): StockLedgerEntry {
         if ($quantityDelta === 0) {
             throw ValidationException::withMessages([
@@ -40,7 +42,7 @@ final class StockLedgerService
             ]);
         }
 
-        return DB::transaction(function () use ($warehouse, $product, $quantityDelta, $reason, $reference, $notes, $allowNegative): StockLedgerEntry {
+        return DB::transaction(function () use ($warehouse, $product, $quantityDelta, $reason, $reference, $notes, $allowNegative, $stockLotId, $serialNumber): StockLedgerEntry {
             $stock = WarehouseStock::query()
                 ->where('warehouse_id', $warehouse->id)
                 ->where('product_id', $product->id)
@@ -70,6 +72,8 @@ final class StockLedgerService
             $entry = StockLedgerEntry::query()->create([
                 'warehouse_id' => $warehouse->id,
                 'product_id' => $product->id,
+                'stock_lot_id' => $stockLotId,
+                'serial_number' => $serialNumber,
                 'quantity' => $quantityDelta,
                 'quantity_after' => $stock->quantity,
                 'reason' => $reason,

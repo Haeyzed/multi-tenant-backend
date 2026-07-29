@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
+use App\Contracts\Tenant\InventoryValuationStrategy;
 use App\Enums\Tenant\OrderStatus;
+use App\Enums\Tenant\SalesInvoiceStatus;
+use App\Enums\Tenant\SalesPaymentStatus;
 use App\Enums\Tenant\StockMovementReason;
 use App\Events\Tenant\Erp\OrderConfirmed;
 use App\Models\Tenant;
@@ -12,6 +15,8 @@ use App\Models\Tenant\Channel;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Order;
 use App\Models\Tenant\Product;
+use App\Models\Tenant\SalesInvoice;
+use App\Models\Tenant\SalesPaymentAllocation;
 use App\Models\Tenant\Tax;
 use App\Models\Tenant\Warehouse;
 use App\Services\Billing\EntitlementEnforcer;
@@ -37,6 +42,7 @@ final class OrderService
         private StockLedgerService $ledger,
         private ReservationService $reservations,
         private PricingEngine $pricing,
+        private InventoryValuationStrategy $valuation,
     ) {}
 
     /**
@@ -126,6 +132,11 @@ final class OrderService
             $tax = $this->resolveTax($data['tax_id'] ?? null);
             $taxAmount = $tax?->calculateTax($subtotal) ?? 0;
             $warehouseId = $this->resolveWarehouseId($data['warehouse_id'] ?? null);
+            $orderTotal = $subtotal + $taxAmount;
+
+            if ($status === OrderStatus::Confirmed) {
+                $this->assertCreditLimit($customer, $orderTotal);
+            }
 
             /** @var Order $order */
             $order = Order::query()->create([
@@ -139,7 +150,7 @@ final class OrderService
                 'currency' => $currency,
                 'subtotal' => $subtotal,
                 'tax' => $taxAmount,
-                'total' => $subtotal + $taxAmount,
+                'total' => $orderTotal,
                 'notes' => $data['notes'] ?? null,
                 'placed_at' => $status === OrderStatus::Draft ? null : now(),
                 'inventory_decremented' => false,
@@ -261,6 +272,11 @@ final class OrderService
             $order->tax = $tax?->calculateTax((int) $order->subtotal) ?? 0;
             $order->total = (int) $order->subtotal + (int) $order->tax;
 
+            if ($order->status === OrderStatus::Confirmed) {
+                $customer = $order->customer ?? Customer::query()->findOrFail($order->customer_id);
+                $this->assertCreditLimit($customer, (int) $order->total, $order->id);
+            }
+
             $order->save();
 
             $this->syncInventoryAndInvoice($order);
@@ -363,6 +379,8 @@ final class OrderService
                     reference: $order,
                     notes: "Sale for order {$order->number}",
                 );
+
+                $this->valuation->consume($product, $item->quantity);
             }
 
             $this->reservations->consumeForOrder($order);
@@ -546,5 +564,43 @@ final class OrderService
         }
 
         return $lines;
+    }
+
+    private function assertCreditLimit(Customer $customer, int $orderTotal, ?int $excludeOrderId = null): void
+    {
+        if ($customer->credit_limit === null) {
+            return;
+        }
+
+        $openAr = $this->openAccountsReceivable($customer->id, $excludeOrderId);
+
+        if ($openAr + $orderTotal > $customer->credit_limit) {
+            throw ValidationException::withMessages([
+                'customer_id' => ['Order would exceed the customer credit limit.'],
+            ]);
+        }
+    }
+
+    private function openAccountsReceivable(int $customerId, ?int $excludeOrderId = null): int
+    {
+        $query = SalesInvoice::query()
+            ->where('customer_id', $customerId)
+            ->whereNotIn('status', [SalesInvoiceStatus::Paid, SalesInvoiceStatus::Void]);
+
+        if ($excludeOrderId !== null) {
+            $query->where('order_id', '!=', $excludeOrderId);
+        }
+
+        return $query->get()->sum(fn (SalesInvoice $invoice): int => $this->invoiceOutstandingBalance($invoice));
+    }
+
+    private function invoiceOutstandingBalance(SalesInvoice $invoice): int
+    {
+        $allocated = (int) SalesPaymentAllocation::query()
+            ->where('sales_invoice_id', $invoice->id)
+            ->whereHas('payment', fn ($query) => $query->where('status', SalesPaymentStatus::Completed))
+            ->sum('amount');
+
+        return max(0, $invoice->total - $allocated);
     }
 }

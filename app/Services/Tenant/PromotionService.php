@@ -56,6 +56,7 @@ final class PromotionService
      *     currency?: string|null,
      *     priority?: int,
      *     min_subtotal?: int|null,
+     *     buy_quantity?: int|null,
      *     stackable?: bool,
      *     is_active?: bool,
      *     starts_at?: string|null,
@@ -68,7 +69,7 @@ final class PromotionService
      */
     public function create(array $data): Promotion
     {
-        $this->assertPromotionValue($data['type'], $data['value']);
+        $this->assertPromotionValue($data['type'], $data['value'], $data['buy_quantity'] ?? null);
 
         return DB::transaction(function () use ($data): Promotion {
             $promotion = Promotion::query()->create([
@@ -79,6 +80,7 @@ final class PromotionService
                 'currency' => isset($data['currency']) ? strtoupper($data['currency']) : null,
                 'priority' => $data['priority'] ?? 0,
                 'min_subtotal' => $data['min_subtotal'] ?? null,
+                'buy_quantity' => $data['buy_quantity'] ?? null,
                 'stackable' => $data['stackable'] ?? false,
                 'is_active' => $data['is_active'] ?? true,
                 'starts_at' => $data['starts_at'] ?? null,
@@ -105,6 +107,7 @@ final class PromotionService
      *     currency?: string|null,
      *     priority?: int,
      *     min_subtotal?: int|null,
+     *     buy_quantity?: int|null,
      *     stackable?: bool,
      *     is_active?: bool,
      *     starts_at?: string|null,
@@ -119,7 +122,7 @@ final class PromotionService
     {
         $type = $data['type'] ?? $promotion->type->value;
         $value = $data['value'] ?? $promotion->value;
-        $this->assertPromotionValue($type, $value);
+        $this->assertPromotionValue($type, $value, $data['buy_quantity'] ?? $promotion->buy_quantity);
 
         return DB::transaction(function () use ($promotion, $data): Promotion {
             if (isset($data['code'])) {
@@ -175,7 +178,7 @@ final class PromotionService
         $promotion->customerGroups()->sync($groupIds);
     }
 
-    private function assertPromotionValue(string $type, int $value): void
+    private function assertPromotionValue(string $type, int $value, ?int $buyQuantity = null): void
     {
         $enum = PromotionType::tryFrom($type);
 
@@ -195,6 +198,20 @@ final class PromotionService
             throw ValidationException::withMessages([
                 'value' => ['Fixed amount promotions must be at least 1.'],
             ]);
+        }
+
+        if ($enum === PromotionType::BuyXGetY) {
+            if ($value < 1) {
+                throw ValidationException::withMessages([
+                    'value' => ['Buy X get Y promotions must have a get quantity of at least 1.'],
+                ]);
+            }
+
+            if ($buyQuantity === null || $buyQuantity < 1) {
+                throw ValidationException::withMessages([
+                    'buy_quantity' => ['Buy X get Y promotions require a buy quantity of at least 1.'],
+                ]);
+            }
         }
     }
 }

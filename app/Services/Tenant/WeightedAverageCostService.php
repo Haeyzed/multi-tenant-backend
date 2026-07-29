@@ -6,6 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Contracts\Tenant\InventoryValuationStrategy;
 use App\Models\Tenant\Product;
+use App\Models\Tenant\StockLot;
 use App\Models\Tenant\WarehouseStock;
 
 /**
@@ -13,7 +14,7 @@ use App\Models\Tenant\WarehouseStock;
  */
 final class WeightedAverageCostService implements InventoryValuationStrategy
 {
-    public function receive(Product $product, int $quantity, int $unitCost): void
+    public function receive(Product $product, int $quantity, int $unitCost, ?StockLot $lot = null): void
     {
         if ($quantity < 1) {
             return;
@@ -38,5 +39,14 @@ final class WeightedAverageCostService implements InventoryValuationStrategy
     public function unitCost(Product $product): int
     {
         return (int) ($product->average_cost ?? $product->unit_price ?? 0);
+    }
+
+    public function consume(Product $product, int $quantity): int
+    {
+        if ($quantity < 1) {
+            return 0;
+        }
+
+        return $this->unitCost($product) * $quantity;
     }
 }

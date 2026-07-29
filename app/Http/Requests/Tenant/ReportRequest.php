@@ -25,6 +25,7 @@ class ReportRequest extends FormRequest
             'limit' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'threshold' => ['sometimes', 'integer', 'min:0', 'max:100000'],
             'warehouse_id' => ['sometimes', 'nullable', 'integer', 'exists:warehouses,id'],
+            'as_of' => ['sometimes', 'nullable', 'date'],
         ];
     }
 }
