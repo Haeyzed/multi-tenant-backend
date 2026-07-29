@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Enums\Billing\FeatureFlagKey;
 use App\Enums\Tenant\StockMovementReason;
 use App\Enums\Tenant\WarehouseTransferStatus;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\StockLedgerEntry;
 use App\Models\Tenant\User;

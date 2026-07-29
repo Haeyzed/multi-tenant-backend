@@ -7,7 +7,7 @@ use App\Enums\Tenant\OrderStatus;
 use App\Enums\Tenant\PurchaseOrderStatus;
 use App\Enums\Tenant\SalesPaymentMethod;
 use App\Enums\Tenant\SupplierInvoiceStatus;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\StockLot;

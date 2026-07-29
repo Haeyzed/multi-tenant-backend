@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Central;
 
 use App\Http\Resources\Resource;
-use App\Models\Plan;
+use App\Models\Central\Plan;
 use Dedoc\Scramble\Attributes\SchemaName;
 use Illuminate\Http\Request;
 

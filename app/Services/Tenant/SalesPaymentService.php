@@ -8,7 +8,7 @@ use App\Enums\Tenant\SalesInvoiceStatus;
 use App\Enums\Tenant\SalesPaymentMethod;
 use App\Enums\Tenant\SalesPaymentStatus;
 use App\Events\Tenant\Erp\PaymentRecorded;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\SalesInvoice;
 use App\Models\Tenant\SalesPayment;
 use App\Models\Tenant\SalesPaymentAllocation;

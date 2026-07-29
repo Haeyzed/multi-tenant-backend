@@ -6,8 +6,8 @@ namespace App\Support;
 
 use App\Enums\Billing\FeatureFlagKey;
 use App\Enums\Tenant\Role;
-use App\Models\Subscription;
-use App\Models\Tenant;
+use App\Models\Central\Subscription;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\User;
 use App\Notifications\Tenant\EntitlementLimitReachedNotification;
 use App\Notifications\Tenant\TrialEndingSoonNotification;

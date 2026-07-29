@@ -7,7 +7,7 @@ namespace App\Listeners;
 use App\Events\Tenant\Erp\CustomerCreated;
 use App\Events\Tenant\Erp\OrderConfirmed;
 use App\Events\Tenant\Erp\ProductCreated;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 

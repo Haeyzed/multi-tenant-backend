@@ -6,7 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Enums\Tenant\GiftCardStatus;
 use App\Events\Tenant\Erp\GiftCardRedeemed;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\GiftCard;
 use App\Models\Tenant\GiftCardRedemption;

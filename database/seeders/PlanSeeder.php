@@ -6,7 +6,7 @@ namespace Database\Seeders;
 
 use App\Enums\Billing\FeatureKey;
 use App\Enums\Billing\PlanInterval;
-use App\Models\Plan;
+use App\Models\Central\Plan;
 use Illuminate\Database\Seeder;
 
 class PlanSeeder extends Seeder

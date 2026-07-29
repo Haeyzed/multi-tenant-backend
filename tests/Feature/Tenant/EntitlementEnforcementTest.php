@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Enums\Billing\FeatureKey;
+use App\Models\Central\Plan;
+use App\Models\Central\Tenant;
 use App\Models\Central\User as CentralUser;
-use App\Models\Plan;
-use App\Models\Tenant;
 use App\Models\Tenant\User;
 use App\Services\Central\SubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;

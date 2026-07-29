@@ -7,7 +7,7 @@ namespace App\Services\Tenant;
 use App\Enums\Tenant\WalletLedgerType;
 use App\Events\Tenant\Erp\WalletCredited;
 use App\Events\Tenant\Erp\WalletDebited;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\CustomerWallet;
 use App\Models\Tenant\CustomerWalletLedger;

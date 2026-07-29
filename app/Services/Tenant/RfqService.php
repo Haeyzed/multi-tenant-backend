@@ -8,7 +8,7 @@ use App\Enums\Tenant\SupplierQuoteStatus;
 use App\Enums\Tenant\SupplierRfqStatus;
 use App\Events\Tenant\Erp\RfqQuoteAccepted;
 use App\Events\Tenant\Erp\RfqSent;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\PurchaseOrder;
 use App\Models\Tenant\PurchaseRequest;

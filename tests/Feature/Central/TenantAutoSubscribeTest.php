@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Models\Central\Plan;
+use App\Models\Central\Subscription;
+use App\Models\Central\Tenant;
 use App\Models\Central\User;
-use App\Models\Plan;
-use App\Models\Subscription;
-use App\Models\Tenant;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

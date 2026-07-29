@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Central;
 
 use App\Http\Resources\Resource;
-use App\Models\SubscriptionHistory;
+use App\Models\Central\SubscriptionHistory;
 use Dedoc\Scramble\Attributes\SchemaName;
 use Illuminate\Http\Request;
 

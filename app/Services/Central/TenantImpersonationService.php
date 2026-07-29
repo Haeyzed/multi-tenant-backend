@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Enums\Tenant\Role as TenantRole;
+use App\Models\Central\Tenant;
 use App\Models\Central\User as CentralUser;
-use App\Models\Tenant;
 use App\Models\Tenant\User as TenantUser;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role as SpatieRole;

@@ -7,7 +7,7 @@ namespace App\Services\Tenant;
 use App\Enums\Tenant\PurchaseAgreementStatus;
 use App\Enums\Tenant\PurchaseOrderStatus;
 use App\Events\Tenant\Erp\PurchaseOrderApproved;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\PurchaseAgreement;
 use App\Models\Tenant\PurchaseAgreementItem;

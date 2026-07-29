@@ -13,7 +13,7 @@ use App\Enums\Tenant\StockMovementReason;
 use App\Enums\Tenant\WorkOrderStatus;
 use App\Jobs\Tenant\DeliverWebhookJob;
 use App\Jobs\Tenant\ProcessDataJob;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\DataJob;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\PurchaseOrder;

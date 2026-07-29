@@ -6,8 +6,8 @@ namespace Database\Factories;
 
 use App\Enums\Billing\BillingGateway;
 use App\Enums\Billing\PaymentStatus;
-use App\Models\Invoice;
-use App\Models\Payment;
+use App\Models\Central\Invoice;
+use App\Models\Central\Payment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

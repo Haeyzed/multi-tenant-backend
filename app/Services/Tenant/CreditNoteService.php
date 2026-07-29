@@ -7,7 +7,7 @@ namespace App\Services\Tenant;
 use App\Enums\Tenant\CreditNoteStatus;
 use App\Enums\Tenant\SalesInvoiceStatus;
 use App\Events\Tenant\Erp\CreditNoteIssued;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\CreditNote;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\SalesInvoice;

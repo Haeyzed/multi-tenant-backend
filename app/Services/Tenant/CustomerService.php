@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Tenant;
 
 use App\Events\Tenant\Erp\CustomerCreated;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\CustomerGroup;
 use App\Services\Billing\EntitlementEnforcer;

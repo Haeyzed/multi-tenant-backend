@@ -6,7 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\Billing\FeatureKey;
 use App\Enums\Billing\PlanInterval;
-use App\Models\Plan;
+use App\Models\Central\Plan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 

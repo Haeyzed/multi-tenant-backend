@@ -5,9 +5,9 @@ declare(strict_types=1);
 use App\Enums\Billing\FeatureKey;
 use App\Enums\Billing\PlanInterval;
 use App\Enums\Billing\SubscriptionStatus;
+use App\Models\Central\Plan;
+use App\Models\Central\Tenant;
 use App\Models\Central\User;
-use App\Models\Plan;
-use App\Models\Tenant;
 use App\Services\Central\EntitlementService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

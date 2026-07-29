@@ -6,7 +6,7 @@ namespace App\Services\Central;
 
 use App\Enums\Billing\CouponDuration;
 use App\Enums\Billing\CouponType;
-use App\Models\Coupon;
+use App\Models\Central\Coupon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;

@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\IndexActivityRequest;
 use App\Http\Resources\Central\ActivityResource;
 use App\Http\Resources\ResourceCollection;
-use App\Models\Activity;
+use App\Models\Central\Activity;
 use App\Services\Central\ActivityLogService;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;

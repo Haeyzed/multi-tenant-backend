@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Employee;
 use App\Models\Tenant\User;
 use App\Services\Billing\EntitlementEnforcer;

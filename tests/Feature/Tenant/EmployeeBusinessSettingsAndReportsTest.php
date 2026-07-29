@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\Tenant\OrderStatus;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\BusinessSetting;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Employee;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
-use App\Models\PlatformSetting;
+use App\Models\Central\PlatformSetting;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Spatie\QueryBuilder\AllowedFilter;

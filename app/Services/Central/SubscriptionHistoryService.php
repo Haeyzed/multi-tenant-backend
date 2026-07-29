@@ -6,9 +6,9 @@ namespace App\Services\Central;
 
 use App\Enums\Billing\SubscriptionHistoryEvent;
 use App\Enums\Billing\SubscriptionStatus;
-use App\Models\PlanPrice;
-use App\Models\Subscription;
-use App\Models\SubscriptionHistory;
+use App\Models\Central\PlanPrice;
+use App\Models\Central\Subscription;
+use App\Models\Central\SubscriptionHistory;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;

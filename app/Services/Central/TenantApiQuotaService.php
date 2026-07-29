@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Enums\Billing\FeatureKey;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 
 /**
  * Resolves per-tenant API request quotas from plan entitlements.

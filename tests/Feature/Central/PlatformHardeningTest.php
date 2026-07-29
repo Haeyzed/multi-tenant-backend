@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Models\Activity;
+use App\Models\Central\Activity;
+use App\Models\Central\Domain;
+use App\Models\Central\Tenant;
 use App\Models\Central\User;
-use App\Models\Domain;
-use App\Models\Tenant;
 use App\Models\Tenant\User as TenantUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

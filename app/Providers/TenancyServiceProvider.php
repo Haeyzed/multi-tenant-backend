@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Models\Activity;
+use App\Models\Central\Activity;
 use App\Models\Tenant\Activity as TenantActivity;
-use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;

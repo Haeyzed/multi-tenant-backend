@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Models\Domain;
-use App\Models\Tenant;
+use App\Models\Central\Domain;
+use App\Models\Central\Tenant;
 use Stancl\Tenancy\Bootstrappers;
 use Stancl\Tenancy\Concerns\UsableWithEarlyIdentification;
 use Stancl\Tenancy\Database\Models\ImpersonationToken;

@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Activity;
+use App\Models\Central\Activity;
 use Spatie\Activitylog\Actions\CleanActivityLogAction;
 use Spatie\Activitylog\Actions\LogActivityAction;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Enums\Billing\CouponDuration;
 use App\Enums\Billing\CouponType;
+use App\Models\Central\Coupon;
 use App\Models\Central\User;
-use App\Models\Coupon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

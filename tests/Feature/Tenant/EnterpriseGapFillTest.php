@@ -9,7 +9,7 @@ use App\Enums\Tenant\PurchaseRequestStatus;
 use App\Enums\Tenant\SalesInvoiceStatus;
 use App\Enums\Tenant\SalesPaymentMethod;
 use App\Enums\Tenant\StockCountStatus;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\SalesInvoice;

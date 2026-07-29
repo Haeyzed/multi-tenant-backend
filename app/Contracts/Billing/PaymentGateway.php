@@ -6,9 +6,9 @@ namespace App\Contracts\Billing;
 
 use App\DataTransferObjects\Billing\GatewaySubscriptionResult;
 use App\Enums\Billing\BillingGateway;
-use App\Models\PlanPrice;
-use App\Models\Subscription;
-use App\Models\Tenant;
+use App\Models\Central\PlanPrice;
+use App\Models\Central\Subscription;
+use App\Models\Central\Tenant;
 use Illuminate\Http\Request;
 
 /**

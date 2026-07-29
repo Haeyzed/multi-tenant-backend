@@ -8,8 +8,8 @@ use App\Enums\Billing\BillingGateway;
 use App\Enums\Billing\InvoiceStatus;
 use App\Enums\Billing\PlanInterval;
 use App\Enums\Billing\SubscriptionStatus;
-use App\Models\Invoice;
-use App\Models\Subscription;
+use App\Models\Central\Invoice;
+use App\Models\Central\Subscription;
 use App\Support\TenantAdminNotifier;
 use Illuminate\Support\Facades\DB;
 

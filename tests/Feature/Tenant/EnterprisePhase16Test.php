@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\Billing\FeatureFlagKey;
 use App\Enums\Tenant\EstimateStatus;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Attribute;
 use App\Models\Tenant\AttributeGroup;
 use App\Models\Tenant\Customer;

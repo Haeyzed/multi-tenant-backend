@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Models\Central\Plan;
+use App\Models\Central\Tenant;
 use App\Models\Central\User;
-use App\Models\Plan;
-use App\Models\Tenant;
 use App\Models\Tenant\Customer;
 use App\Services\Central\SubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;

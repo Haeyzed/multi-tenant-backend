@@ -6,8 +6,8 @@ namespace Database\Factories;
 
 use App\Enums\Billing\SubscriptionHistoryEvent;
 use App\Enums\Billing\SubscriptionStatus;
-use App\Models\Subscription;
-use App\Models\SubscriptionHistory;
+use App\Models\Central\Subscription;
+use App\Models\Central\SubscriptionHistory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

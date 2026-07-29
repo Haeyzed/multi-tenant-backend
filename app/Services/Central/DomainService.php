@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
-use App\Models\Domain;
-use App\Models\Tenant;
+use App\Models\Central\Domain;
+use App\Models\Central\Tenant;
 use App\Services\Billing\EntitlementEnforcer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

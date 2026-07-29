@@ -6,7 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\Billing\CouponDuration;
 use App\Enums\Billing\CouponType;
-use App\Models\Coupon;
+use App\Models\Central\Coupon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 

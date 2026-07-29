@@ -11,7 +11,7 @@ use App\Http\Requests\Central\UpdateCouponRequest;
 use App\Http\Resources\Central\CouponResource;
 use App\Http\Resources\ResourceCollection;
 use App\Http\Responses\ApiResponse;
-use App\Models\Coupon;
+use App\Models\Central\Coupon;
 use App\Services\Central\CouponService;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;

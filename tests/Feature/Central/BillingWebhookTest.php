@@ -5,10 +5,10 @@ declare(strict_types=1);
 use App\Enums\Billing\BillingGateway;
 use App\Enums\Billing\SubscriptionStatus;
 use App\Enums\Billing\WebhookEventStatus;
+use App\Models\Central\Plan;
+use App\Models\Central\Tenant;
 use App\Models\Central\User;
-use App\Models\Plan;
-use App\Models\Tenant;
-use App\Models\WebhookEvent;
+use App\Models\Central\WebhookEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

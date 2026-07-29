@@ -7,7 +7,7 @@ namespace App\Services\Tenant;
 use App\Enums\Tenant\OrderStatus;
 use App\Enums\Tenant\QuotationStatus;
 use App\Events\Tenant\Erp\QuotationAccepted;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\Quotation;

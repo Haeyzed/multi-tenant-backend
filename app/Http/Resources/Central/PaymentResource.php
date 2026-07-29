@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Central;
 
 use App\Http\Resources\Resource;
-use App\Models\Payment;
+use App\Models\Central\Payment;
 use Dedoc\Scramble\Attributes\SchemaName;
 use Illuminate\Http\Request;
 

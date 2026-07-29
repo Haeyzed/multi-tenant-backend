@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications\Tenant;
 
-use App\Models\Subscription;
+use App\Models\Central\Subscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;

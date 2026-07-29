@@ -6,7 +6,7 @@ use App\Enums\Tenant\OrderStatus;
 use App\Events\Tenant\Erp\CustomerCreated;
 use App\Events\Tenant\Erp\OrderConfirmed;
 use App\Events\Tenant\Erp\ProductCreated;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\User;

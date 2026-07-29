@@ -6,7 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Enums\Tenant\StockMovementReason;
 use App\Enums\Tenant\WarehouseType;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\Warehouse;
 use App\Models\Tenant\WarehouseStock;

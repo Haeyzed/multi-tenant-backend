@@ -6,7 +6,7 @@ use App\Enums\Billing\FeatureFlagKey;
 use App\Enums\Tenant\CollectionType;
 use App\Enums\Tenant\ProductStatus;
 use App\Enums\Tenant\ProductType;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Brand;
 use App\Models\Tenant\Collection;
 use App\Models\Tenant\Product;

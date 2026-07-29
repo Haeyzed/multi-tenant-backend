@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Enums\Billing\FeatureFlagKey;
+use App\Models\Central\Tenant;
 use App\Models\Central\User;
-use App\Models\Tenant;
 use App\Models\Tenant\User as TenantUser;
 use App\Services\Central\FeatureFlagService;
 use Illuminate\Foundation\Testing\RefreshDatabase;

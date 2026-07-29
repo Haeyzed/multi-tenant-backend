@@ -7,7 +7,7 @@ namespace App\Services\Tenant;
 use App\Enums\Tenant\StockMovementReason;
 use App\Enums\Tenant\WorkOrderStatus;
 use App\Events\Tenant\Erp\WorkOrderCompleted;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\BillOfMaterial;
 use App\Models\Tenant\Warehouse;
 use App\Models\Tenant\WorkOrder;

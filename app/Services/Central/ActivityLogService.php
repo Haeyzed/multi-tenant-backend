@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
-use App\Models\Activity;
+use App\Models\Central\Activity;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;

@@ -7,7 +7,7 @@ use App\Enums\Tenant\OrderStatus;
 use App\Enums\Tenant\ProductType;
 use App\Enums\Tenant\ReturnAuthorizationStatus;
 use App\Enums\Tenant\ReturnDisposition;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\User;

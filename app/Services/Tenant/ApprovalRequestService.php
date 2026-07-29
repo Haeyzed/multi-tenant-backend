@@ -6,7 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Enums\Tenant\ApprovalRequestStatus;
 use App\Events\Tenant\Erp\ApprovalDecided;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\ApprovalRequest;
 use App\Models\Tenant\PurchaseOrder;
 use App\Models\Tenant\ReturnAuthorization;

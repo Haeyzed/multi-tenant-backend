@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\Billing\InvoiceStatus;
-use App\Models\Invoice;
-use App\Models\Tenant;
+use App\Models\Central\Invoice;
+use App\Models\Central\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 

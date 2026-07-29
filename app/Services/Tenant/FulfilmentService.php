@@ -7,7 +7,7 @@ namespace App\Services\Tenant;
 use App\Enums\Tenant\FulfilmentStatus;
 use App\Enums\Tenant\OrderStatus;
 use App\Events\Tenant\Erp\OrderFulfilled;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Fulfilment;
 use App\Models\Tenant\FulfilmentItem;
 use App\Models\Tenant\Order;

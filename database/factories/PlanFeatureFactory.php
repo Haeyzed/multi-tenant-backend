@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\Billing\FeatureKey;
-use App\Models\Plan;
-use App\Models\PlanFeature;
+use App\Models\Central\Plan;
+use App\Models\Central\PlanFeature;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

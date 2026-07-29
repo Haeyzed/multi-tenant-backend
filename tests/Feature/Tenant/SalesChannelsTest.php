@@ -8,7 +8,7 @@ use App\Enums\Tenant\ChannelType;
 use App\Enums\Tenant\OrderStatus;
 use App\Enums\Tenant\PosSessionStatus;
 use App\Enums\Tenant\StockMovementReason;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\User;

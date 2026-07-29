@@ -7,7 +7,7 @@ use App\Enums\Tenant\CreditNoteStatus;
 use App\Enums\Tenant\OrderStatus;
 use App\Enums\Tenant\ReturnAuthorizationStatus;
 use App\Enums\Tenant\StockMovementReason;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Order;
 use App\Models\Tenant\Product;

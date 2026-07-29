@@ -12,7 +12,7 @@ use App\Events\Tenant\Erp\ReturnApproved;
 use App\Events\Tenant\Erp\ReturnReceived;
 use App\Events\Tenant\Erp\ReturnRefunded;
 use App\Events\Tenant\Erp\ReturnRequested;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Order;
 use App\Models\Tenant\OrderItem;
 use App\Models\Tenant\Product;

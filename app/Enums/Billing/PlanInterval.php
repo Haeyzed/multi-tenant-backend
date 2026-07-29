@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enums\Billing;
 
-use App\Models\PlanPrice;
+use App\Models\Central\PlanPrice;
 
 /**
  * Recurring billing interval for a {@see PlanPrice}.

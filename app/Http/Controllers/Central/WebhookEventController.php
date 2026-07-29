@@ -8,7 +8,7 @@ use App\Enums\Central\Permission;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Central\WebhookEventResource;
 use App\Http\Resources\ResourceCollection;
-use App\Models\WebhookEvent;
+use App\Models\Central\WebhookEvent;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
 use Illuminate\Http\Request;

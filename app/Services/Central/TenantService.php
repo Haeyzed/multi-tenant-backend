@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Events\Tenant\TenantProvisioned;
-use App\Models\PlanPrice;
-use App\Models\Tenant;
+use App\Models\Central\PlanPrice;
+use App\Models\Central\Tenant;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

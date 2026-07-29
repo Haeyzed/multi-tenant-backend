@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Models\Central;
 
 use Spatie\Activitylog\Models\Activity as BaseActivity;
 use Stancl\Tenancy\Database\Concerns\CentralConnection;

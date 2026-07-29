@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\PlanPrice;
-use App\Models\Subscription;
-use App\Models\SubscriptionItem;
+use App\Models\Central\PlanPrice;
+use App\Models\Central\Subscription;
+use App\Models\Central\SubscriptionItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

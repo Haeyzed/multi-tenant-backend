@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\Billing\PlanInterval;
-use App\Models\Plan;
-use App\Models\PlanPrice;
+use App\Models\Central\Plan;
+use App\Models\Central\PlanPrice;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

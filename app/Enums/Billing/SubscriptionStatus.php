@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enums\Billing;
 
-use App\Models\Subscription;
+use App\Models\Central\Subscription;
 
 /**
  * Lifecycle status for a tenant {@see Subscription}.

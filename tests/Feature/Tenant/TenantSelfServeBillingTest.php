@@ -6,9 +6,9 @@ use App\Enums\Billing\InvoiceStatus;
 use App\Enums\Billing\SubscriptionStatus;
 use App\Enums\Tenant\Permission as TenantPermission;
 use App\Enums\Tenant\Role as TenantRole;
-use App\Models\Invoice;
-use App\Models\Plan;
-use App\Models\Tenant;
+use App\Models\Central\Invoice;
+use App\Models\Central\Plan;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

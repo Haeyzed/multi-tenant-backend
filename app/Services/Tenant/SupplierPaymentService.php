@@ -8,7 +8,7 @@ use App\Enums\Tenant\SalesPaymentMethod;
 use App\Enums\Tenant\SupplierInvoiceStatus;
 use App\Enums\Tenant\SupplierPaymentStatus;
 use App\Events\Tenant\Erp\SupplierPaymentRecorded;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\SupplierInvoice;
 use App\Models\Tenant\SupplierPayment;
 use App\Models\Tenant\SupplierPaymentAllocation;

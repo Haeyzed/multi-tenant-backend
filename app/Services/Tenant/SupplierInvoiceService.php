@@ -7,7 +7,7 @@ namespace App\Services\Tenant;
 use App\Enums\Tenant\PurchaseOrderStatus;
 use App\Enums\Tenant\SupplierInvoiceStatus;
 use App\Events\Tenant\Erp\SupplierInvoiceIssued;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\PurchaseOrder;
 use App\Models\Tenant\Supplier;

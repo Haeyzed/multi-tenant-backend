@@ -6,10 +6,10 @@ namespace Database\Factories;
 
 use App\Enums\Billing\BillingGateway;
 use App\Enums\Billing\SubscriptionStatus;
-use App\Models\Plan;
-use App\Models\PlanPrice;
-use App\Models\Subscription;
-use App\Models\Tenant;
+use App\Models\Central\Plan;
+use App\Models\Central\PlanPrice;
+use App\Models\Central\Subscription;
+use App\Models\Central\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

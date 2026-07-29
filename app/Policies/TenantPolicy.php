@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Enums\Central\Permission;
+use App\Models\Central\Tenant;
 use App\Models\Central\User;
-use App\Models\Tenant;
 
 /**
  * Authorizes central-API tenant provisioning actions via Spatie permissions.

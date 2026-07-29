@@ -9,7 +9,7 @@ use App\Enums\Billing\FeatureFlagKey;
 use App\Enums\Tenant\ChannelAdapterKey;
 use App\Enums\Tenant\OrderStatus;
 use App\Enums\Tenant\ShipmentStatus;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Channel;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Order;

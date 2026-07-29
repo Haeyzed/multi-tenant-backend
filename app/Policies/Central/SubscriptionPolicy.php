@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Policies\Central;
 
 use App\Enums\Central\Permission;
+use App\Models\Central\Subscription;
 use App\Models\Central\User;
-use App\Models\Subscription;
 
 class SubscriptionPolicy
 {

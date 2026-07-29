@@ -8,7 +8,7 @@ use App\Enums\Tenant\LandedCostType;
 use App\Enums\Tenant\PurchaseOrderStatus;
 use App\Enums\Tenant\StockMovementReason;
 use App\Enums\Tenant\SupplierReturnStatus;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\PurchaseOrder;
 use App\Models\Tenant\StockLedgerEntry;

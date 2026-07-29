@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Enums\Billing\FeatureFlagKey;
 use App\Enums\Tenant\CustomerAddressType;
 use App\Enums\Tenant\CustomerNoteType;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\CustomerAddress;
 use App\Models\Tenant\CustomerContact;

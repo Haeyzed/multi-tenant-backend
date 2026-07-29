@@ -10,7 +10,7 @@ use App\Enums\Tenant\SalesInvoiceStatus;
 use App\Enums\Tenant\SalesPaymentStatus;
 use App\Enums\Tenant\StockMovementReason;
 use App\Events\Tenant\Erp\OrderConfirmed;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Channel;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Order;

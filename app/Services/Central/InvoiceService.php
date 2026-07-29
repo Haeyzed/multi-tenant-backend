@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
-use App\Models\Invoice;
-use App\Models\Payment;
-use App\Models\Tenant;
+use App\Models\Central\Invoice;
+use App\Models\Central\Payment;
+use App\Models\Central\Tenant;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;

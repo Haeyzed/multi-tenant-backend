@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Models\Central;
 
 use Database\Factories\SubscriptionItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

@@ -6,8 +6,8 @@ namespace App\Services\Billing;
 
 use App\Enums\Billing\FeatureKey;
 use App\Exceptions\EntitlementLimitExceededException;
-use App\Models\Domain;
-use App\Models\Tenant;
+use App\Models\Central\Domain;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Employee;
 use App\Models\Tenant\Order;

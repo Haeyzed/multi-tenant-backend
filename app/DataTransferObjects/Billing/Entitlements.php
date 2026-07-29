@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\DataTransferObjects\Billing;
 
 use App\Enums\Billing\FeatureKey;
-use App\Models\Plan;
-use App\Models\Subscription;
+use App\Models\Central\Plan;
+use App\Models\Central\Subscription;
 
 /**
  * Resolved plan features and access for a tenant.

@@ -8,7 +8,7 @@ use App\Contracts\Tenant\InventoryValuationStrategy;
 use App\Enums\Tenant\StockMovementReason;
 use App\Enums\Tenant\SupplierReturnStatus;
 use App\Events\Tenant\Erp\SupplierReturnPosted;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\Supplier;
 use App\Models\Tenant\SupplierReturn;

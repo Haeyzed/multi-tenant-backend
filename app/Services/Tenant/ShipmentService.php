@@ -8,7 +8,7 @@ use App\Contracts\Tenant\ShippingLabelProvider;
 use App\Enums\Tenant\ShipmentStatus;
 use App\Events\Tenant\Erp\ShipmentCreated;
 use App\Events\Tenant\Erp\ShipmentDelivered;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Fulfilment;
 use App\Models\Tenant\Order;
 use App\Models\Tenant\Shipment;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Order;
 use App\Models\Tenant\Product;

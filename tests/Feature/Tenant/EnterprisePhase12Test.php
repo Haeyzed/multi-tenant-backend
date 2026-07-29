@@ -8,7 +8,7 @@ use App\Enums\Tenant\OrderStatus;
 use App\Enums\Tenant\PurchaseRequestStatus;
 use App\Enums\Tenant\SupplierQuoteStatus;
 use App\Enums\Tenant\SupplierRfqStatus;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\StockLot;

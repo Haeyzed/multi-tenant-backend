@@ -6,7 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Enums\Tenant\PurchaseRequestStatus;
 use App\Events\Tenant\Erp\PurchaseRequestApproved;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\PurchaseOrder;
 use App\Models\Tenant\PurchaseRequest;

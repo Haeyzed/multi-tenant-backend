@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Tenant;
 
 use App\Enums\Tenant\Permission;
-use App\Models\PlanPrice;
+use App\Models\Central\PlanPrice;
 use App\Services\Billing\BillingGatewayManager;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;

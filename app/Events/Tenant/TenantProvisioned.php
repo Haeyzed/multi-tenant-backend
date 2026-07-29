@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Events\Tenant;
 
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;

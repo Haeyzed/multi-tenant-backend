@@ -11,7 +11,7 @@ use App\Http\Requests\Central\UpdateTenantRequest;
 use App\Http\Resources\Central\TenantResource;
 use App\Http\Resources\ResourceCollection;
 use App\Http\Responses\ApiResponse;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Services\Central\TenantService;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;

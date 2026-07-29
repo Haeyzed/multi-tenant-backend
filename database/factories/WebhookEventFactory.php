@@ -6,7 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\Billing\BillingGateway;
 use App\Enums\Billing\WebhookEventStatus;
-use App\Models\WebhookEvent;
+use App\Models\Central\WebhookEvent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 

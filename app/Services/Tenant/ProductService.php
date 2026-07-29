@@ -8,7 +8,7 @@ use App\Enums\Tenant\ProductStatus;
 use App\Enums\Tenant\ProductType;
 use App\Events\Tenant\Erp\ProductCreated;
 use App\Exceptions\EntitlementLimitExceededException;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\Product;
 use App\Services\Billing\EntitlementEnforcer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;

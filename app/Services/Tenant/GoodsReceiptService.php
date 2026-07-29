@@ -10,7 +10,7 @@ use App\Enums\Tenant\LandedCostType;
 use App\Enums\Tenant\PurchaseOrderStatus;
 use App\Enums\Tenant\StockMovementReason;
 use App\Events\Tenant\Erp\GoodsReceived;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Models\Tenant\GoodsReceipt;
 use App\Models\Tenant\GoodsReceiptItem;
 use App\Models\Tenant\LandedCostComponent;

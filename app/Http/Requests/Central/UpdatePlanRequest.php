@@ -6,7 +6,7 @@ namespace App\Http\Requests\Central;
 
 use App\Enums\Billing\PlanInterval;
 use App\Enums\Central\Permission;
-use App\Models\Plan;
+use App\Models\Central\Plan;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

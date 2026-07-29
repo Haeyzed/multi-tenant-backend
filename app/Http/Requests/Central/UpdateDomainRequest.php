@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
-use App\Models\Domain;
-use App\Models\Tenant;
+use App\Models\Central\Domain;
+use App\Models\Central\Tenant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

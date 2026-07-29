@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Models\Central;
 
 use App\Enums\Billing\CouponDuration;
 use App\Enums\Billing\CouponType;

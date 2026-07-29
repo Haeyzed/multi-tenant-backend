@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Central;
 
 use App\Http\Resources\Resource;
-use App\Models\Activity;
+use App\Models\Central\Activity;
 use Dedoc\Scramble\Attributes\SchemaName;
 use Illuminate\Http\Request;
 

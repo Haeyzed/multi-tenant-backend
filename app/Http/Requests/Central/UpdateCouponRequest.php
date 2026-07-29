@@ -7,7 +7,7 @@ namespace App\Http\Requests\Central;
 use App\Enums\Billing\CouponDuration;
 use App\Enums\Billing\CouponType;
 use App\Enums\Central\Permission;
-use App\Models\Coupon;
+use App\Models\Central\Coupon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

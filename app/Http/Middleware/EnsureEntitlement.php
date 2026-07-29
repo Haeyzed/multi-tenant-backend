@@ -6,7 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Enums\Billing\FeatureKey;
 use App\Exceptions\EntitlementLimitExceededException;
-use App\Models\Tenant;
+use App\Models\Central\Tenant;
 use App\Services\Billing\EntitlementEnforcer;
 use Closure;
 use Illuminate\Http\Request;

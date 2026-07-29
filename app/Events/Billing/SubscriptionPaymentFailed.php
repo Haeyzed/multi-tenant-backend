@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Events\Billing;
 
-use App\Models\Subscription;
+use App\Models\Central\Subscription;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;

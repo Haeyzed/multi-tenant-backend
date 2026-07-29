@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\Central\PlatformSetting;
 use App\Models\Central\User;
-use App\Models\PlatformSetting;
 use App\Services\Central\PlatformSettingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

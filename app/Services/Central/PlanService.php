@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Central;
 
 use App\Enums\Billing\PlanInterval;
-use App\Models\Plan;
+use App\Models\Central\Plan;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

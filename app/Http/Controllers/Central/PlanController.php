@@ -11,7 +11,7 @@ use App\Http\Requests\Central\UpdatePlanRequest;
 use App\Http\Resources\Central\PlanResource;
 use App\Http\Resources\ResourceCollection;
 use App\Http\Responses\ApiResponse;
-use App\Models\Plan;
+use App\Models\Central\Plan;
 use App\Services\Central\PlanService;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
