@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Tenant\ActivityController;
 use App\Http\Controllers\Tenant\ApprovalRequestController;
 use App\Http\Controllers\Tenant\AttributeController;
 use App\Http\Controllers\Tenant\AttributeGroupController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\Tenant\OrderNoteController;
 use App\Http\Controllers\Tenant\PosSessionController;
 use App\Http\Controllers\Tenant\PriceListController;
 use App\Http\Controllers\Tenant\ProductAttributeController;
+use App\Http\Controllers\Tenant\ProductBundleItemController;
 use App\Http\Controllers\Tenant\ProductController;
 use App\Http\Controllers\Tenant\ProductMediaController;
 use App\Http\Controllers\Tenant\ProductRelationController;
@@ -62,6 +64,8 @@ use App\Http\Controllers\Tenant\StockCountController;
 use App\Http\Controllers\Tenant\StockLotController;
 use App\Http\Controllers\Tenant\StockSerialController;
 use App\Http\Controllers\Tenant\StoreConfigController;
+use App\Http\Controllers\Tenant\SupplierAddressController;
+use App\Http\Controllers\Tenant\SupplierContactController;
 use App\Http\Controllers\Tenant\SupplierController;
 use App\Http\Controllers\Tenant\SupplierInvoiceController;
 use App\Http\Controllers\Tenant\SupplierPaymentController;
@@ -163,6 +167,11 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
     Route::apiResource('users', UserController::class)
         ->middlewareFor('store', 'entitlement:users.max')
         ->names('tenant.users');
+
+    Route::get('activity', [ActivityController::class, 'index'])
+        ->name('tenant.activity.index');
+    Route::get('activity/{activity}', [ActivityController::class, 'show'])
+        ->name('tenant.activity.show');
 
     Route::apiResource('customers', CustomerController::class)
         ->middlewareFor('store', 'entitlement:customers.max')
@@ -292,6 +301,11 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
             ->parameters(['relations' => 'relation'])
             ->names('tenant.products.relations');
 
+        Route::get('products/{product}/bundle-items', [ProductBundleItemController::class, 'index'])
+            ->name('tenant.products.bundle-items.index');
+        Route::put('products/{product}/bundle-items', [ProductBundleItemController::class, 'sync'])
+            ->name('tenant.products.bundle-items.sync');
+
         Route::post('products/{product}/media/upload', [ProductMediaController::class, 'upload'])
             ->name('tenant.products.media.upload');
         Route::apiResource('products.media', ProductMediaController::class)
@@ -385,6 +399,14 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
         Route::apiResource('suppliers', SupplierController::class)
             ->names('tenant.suppliers');
 
+        Route::apiResource('suppliers.contacts', SupplierContactController::class)
+            ->parameters(['contacts' => 'contact'])
+            ->names('tenant.suppliers.contacts');
+
+        Route::apiResource('suppliers.addresses', SupplierAddressController::class)
+            ->parameters(['addresses' => 'address'])
+            ->names('tenant.suppliers.addresses');
+
         Route::post('purchase-requests/{purchase_request}/submit', [PurchaseRequestController::class, 'submit'])
             ->name('tenant.purchase-requests.submit');
         Route::post('purchase-requests/{purchase_request}/approve', [PurchaseRequestController::class, 'approve'])
@@ -447,6 +469,12 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
             ->name('tenant.returns.approve');
         Route::post('returns/{return_authorization}/receive', [ReturnAuthorizationController::class, 'receive'])
             ->name('tenant.returns.receive');
+        Route::post('returns/{return_authorization}/inspect', [ReturnAuthorizationController::class, 'inspect'])
+            ->name('tenant.returns.inspect');
+        Route::post('returns/{return_authorization}/replace', [ReturnAuthorizationController::class, 'replace'])
+            ->name('tenant.returns.replace');
+        Route::post('returns/{return_authorization}/repair', [ReturnAuthorizationController::class, 'repair'])
+            ->name('tenant.returns.repair');
         Route::post('returns/{return_authorization}/refund', [ReturnAuthorizationController::class, 'refund'])
             ->name('tenant.returns.refund');
         Route::post('returns/{return_authorization}/cancel', [ReturnAuthorizationController::class, 'cancel'])

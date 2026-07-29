@@ -50,6 +50,21 @@ class ReturnAuthorizationPolicy
         return $user->can(Permission::ReturnsUpdate->value);
     }
 
+    public function inspect(User $user, ReturnAuthorization $returnAuthorization): bool
+    {
+        return $user->can(Permission::ReturnsUpdate->value);
+    }
+
+    public function replace(User $user, ReturnAuthorization $returnAuthorization): bool
+    {
+        return $user->can(Permission::ReturnsUpdate->value);
+    }
+
+    public function repair(User $user, ReturnAuthorization $returnAuthorization): bool
+    {
+        return $user->can(Permission::ReturnsUpdate->value);
+    }
+
     public function refund(User $user, ReturnAuthorization $returnAuthorization): bool
     {
         return $user->can(Permission::ReturnsUpdate->value);

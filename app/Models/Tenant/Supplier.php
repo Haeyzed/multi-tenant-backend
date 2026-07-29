@@ -55,6 +55,22 @@ class Supplier extends Model
     }
 
     /**
+     * @return HasMany<SupplierContact, $this>
+     */
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(SupplierContact::class);
+    }
+
+    /**
+     * @return HasMany<SupplierAddress, $this>
+     */
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(SupplierAddress::class);
+    }
+
+    /**
      * @return HasMany<PurchaseOrder, $this>
      */
     public function purchaseOrders(): HasMany

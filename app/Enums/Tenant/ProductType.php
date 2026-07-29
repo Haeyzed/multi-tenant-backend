@@ -10,6 +10,7 @@ enum ProductType: string
     case Configurable = 'configurable';
     case Variant = 'variant';
     case Bundle = 'bundle';
+    case Kit = 'kit';
     case Digital = 'digital';
     case Service = 'service';
 }

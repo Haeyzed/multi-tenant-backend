@@ -43,6 +43,7 @@ final class OrderService
         private ReservationService $reservations,
         private PricingEngine $pricing,
         private InventoryValuationStrategy $valuation,
+        private BundleService $bundles,
     ) {}
 
     /**
@@ -359,28 +360,33 @@ final class OrderService
                 /** @var Product $product */
                 $product = Product::query()->findOrFail($item->product_id);
 
-                if (! $product->track_inventory) {
-                    continue;
+                foreach ($this->bundles->explodeForOrder($product, $item->quantity) as $line) {
+                    $component = $line['product'];
+                    $quantity = $line['quantity'];
+
+                    if (! $component->track_inventory) {
+                        continue;
+                    }
+
+                    $onHand = $this->ledger->onHand($warehouse, $component);
+
+                    if ($onHand < $quantity) {
+                        throw ValidationException::withMessages([
+                            'items' => ["Insufficient warehouse stock for product #{$component->id}. Available: {$onHand}."],
+                        ]);
+                    }
+
+                    $this->ledger->move(
+                        warehouse: $warehouse,
+                        product: $component,
+                        quantityDelta: -1 * $quantity,
+                        reason: StockMovementReason::Sale,
+                        reference: $order,
+                        notes: "Sale for order {$order->number}",
+                    );
+
+                    $this->valuation->consume($component, $quantity);
                 }
-
-                $onHand = $this->ledger->onHand($warehouse, $product);
-
-                if ($onHand < $item->quantity) {
-                    throw ValidationException::withMessages([
-                        'items' => ["Insufficient warehouse stock for product #{$item->product_id}. Available: {$onHand}."],
-                    ]);
-                }
-
-                $this->ledger->move(
-                    warehouse: $warehouse,
-                    product: $product,
-                    quantityDelta: -1 * $item->quantity,
-                    reason: StockMovementReason::Sale,
-                    reference: $order,
-                    notes: "Sale for order {$order->number}",
-                );
-
-                $this->valuation->consume($product, $item->quantity);
             }
 
             $this->reservations->consumeForOrder($order);
@@ -389,17 +395,25 @@ final class OrderService
                 /** @var Product|null $product */
                 $product = Product::query()->lockForUpdate()->find($item->product_id);
 
-                if ($product === null || ! $product->track_inventory || $product->stock_quantity === null) {
+                if ($product === null) {
                     continue;
                 }
 
-                if ($product->stock_quantity < $item->quantity) {
-                    throw ValidationException::withMessages([
-                        'items' => ["Insufficient stock for {$product->sku}. Available: {$product->stock_quantity}."],
-                    ]);
-                }
+                foreach ($this->bundles->explodeForOrder($product, $item->quantity) as $line) {
+                    $component = Product::query()->lockForUpdate()->find($line['product']->id);
 
-                $product->decrement('stock_quantity', $item->quantity);
+                    if ($component === null || ! $component->track_inventory || $component->stock_quantity === null) {
+                        continue;
+                    }
+
+                    if ($component->stock_quantity < $line['quantity']) {
+                        throw ValidationException::withMessages([
+                            'items' => ["Insufficient stock for {$component->sku}. Available: {$component->stock_quantity}."],
+                        ]);
+                    }
+
+                    $component->decrement('stock_quantity', $line['quantity']);
+                }
             }
         }
 
@@ -422,29 +436,41 @@ final class OrderService
                 /** @var Product $product */
                 $product = Product::query()->findOrFail($item->product_id);
 
-                if (! $product->track_inventory) {
-                    continue;
-                }
+                foreach ($this->bundles->explodeForOrder($product, $item->quantity) as $line) {
+                    $component = $line['product'];
 
-                $this->ledger->move(
-                    warehouse: $warehouse,
-                    product: $product,
-                    quantityDelta: $item->quantity,
-                    reason: StockMovementReason::SaleReversal,
-                    reference: $order,
-                    notes: "Reversal for order {$order->number}",
-                );
+                    if (! $component->track_inventory) {
+                        continue;
+                    }
+
+                    $this->ledger->move(
+                        warehouse: $warehouse,
+                        product: $component,
+                        quantityDelta: $line['quantity'],
+                        reason: StockMovementReason::SaleReversal,
+                        reference: $order,
+                        notes: "Reversal for order {$order->number}",
+                    );
+                }
             }
         } else {
             foreach ($order->items as $item) {
                 /** @var Product|null $product */
                 $product = Product::query()->lockForUpdate()->find($item->product_id);
 
-                if ($product === null || ! $product->track_inventory || $product->stock_quantity === null) {
+                if ($product === null) {
                     continue;
                 }
 
-                $product->increment('stock_quantity', $item->quantity);
+                foreach ($this->bundles->explodeForOrder($product, $item->quantity) as $line) {
+                    $component = Product::query()->lockForUpdate()->find($line['product']->id);
+
+                    if ($component === null || ! $component->track_inventory || $component->stock_quantity === null) {
+                        continue;
+                    }
+
+                    $component->increment('stock_quantity', $line['quantity']);
+                }
             }
         }
 
@@ -465,17 +491,21 @@ final class OrderService
             /** @var Product $product */
             $product = Product::query()->findOrFail($item->product_id);
 
-            if (! $product->track_inventory) {
-                continue;
-            }
+            foreach ($this->bundles->explodeForOrder($product, $item->quantity) as $line) {
+                $component = $line['product'];
 
-            $this->reservations->reserve(
-                warehouse: $warehouse,
-                product: $product,
-                quantity: $item->quantity,
-                order: $order,
-                expiresAt: now()->addDays(7),
-            );
+                if (! $component->track_inventory) {
+                    continue;
+                }
+
+                $this->reservations->reserve(
+                    warehouse: $warehouse,
+                    product: $component,
+                    quantity: $line['quantity'],
+                    order: $order,
+                    expiresAt: now()->addDays(7),
+                );
+            }
         }
     }
 

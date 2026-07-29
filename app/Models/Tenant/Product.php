@@ -87,6 +87,10 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'unit_price',
     'average_cost',
     'stock_quantity',
+    'reorder_point',
+    'safety_stock',
+    'min_stock',
+    'max_stock',
     'track_inventory',
     'gtin',
     'barcode',
@@ -137,6 +141,10 @@ class Product extends Model implements HasMedia
             'unit_price' => 'integer',
             'average_cost' => 'integer',
             'stock_quantity' => 'integer',
+            'reorder_point' => 'integer',
+            'safety_stock' => 'integer',
+            'min_stock' => 'integer',
+            'max_stock' => 'integer',
             'track_inventory' => 'boolean',
             'is_active' => 'boolean',
             'published_at' => 'datetime',
@@ -242,6 +250,14 @@ class Product extends Model implements HasMedia
     public function productUoms(): HasMany
     {
         return $this->hasMany(ProductUom::class);
+    }
+
+    /**
+     * @return HasMany<ProductBundleItem, $this>
+     */
+    public function bundleItems(): HasMany
+    {
+        return $this->hasMany(ProductBundleItem::class, 'bundle_product_id');
     }
 
     /**

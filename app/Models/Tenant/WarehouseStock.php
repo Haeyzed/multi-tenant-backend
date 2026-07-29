@@ -23,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property-read Warehouse $warehouse
  * @property-read Product $product
  */
-#[Fillable(['warehouse_id', 'product_id', 'quantity'])]
+#[Fillable(['warehouse_id', 'product_id', 'quantity', 'reorder_point', 'safety_stock', 'min_stock', 'max_stock'])]
 class WarehouseStock extends Model
 {
     /** @use HasFactory<WarehouseStockFactory> */
@@ -36,6 +36,10 @@ class WarehouseStock extends Model
     {
         return [
             'quantity' => 'integer',
+            'reorder_point' => 'integer',
+            'safety_stock' => 'integer',
+            'min_stock' => 'integer',
+            'max_stock' => 'integer',
         ];
     }
 

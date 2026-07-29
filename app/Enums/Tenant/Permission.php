@@ -113,6 +113,16 @@ enum Permission: string
     case SuppliersUpdate = 'suppliers.update';
     case SuppliersDelete = 'suppliers.delete';
 
+    case SupplierContactsView = 'supplier_contacts.view';
+    case SupplierContactsCreate = 'supplier_contacts.create';
+    case SupplierContactsUpdate = 'supplier_contacts.update';
+    case SupplierContactsDelete = 'supplier_contacts.delete';
+
+    case SupplierAddressesView = 'supplier_addresses.view';
+    case SupplierAddressesCreate = 'supplier_addresses.create';
+    case SupplierAddressesUpdate = 'supplier_addresses.update';
+    case SupplierAddressesDelete = 'supplier_addresses.delete';
+
     case PurchaseOrdersView = 'purchase_orders.view';
     case PurchaseOrdersCreate = 'purchase_orders.create';
     case PurchaseOrdersUpdate = 'purchase_orders.update';
@@ -249,6 +259,8 @@ enum Permission: string
     case NotificationsView = 'notifications.view';
     case NotificationsUpdate = 'notifications.update';
 
+    case ActivityView = 'activity.view';
+
     case BillingView = 'billing.view';
     case BillingManage = 'billing.manage';
 
@@ -288,6 +300,8 @@ enum Permission: string
             self::PriceListsView,
             self::PromotionsView,
             self::SuppliersView,
+            self::SupplierContactsView,
+            self::SupplierAddressesView,
             self::PurchaseOrdersView,
             self::PurchaseRequestsView,
             self::RfqsView,
@@ -317,6 +331,7 @@ enum Permission: string
             self::SettingsView,
             self::ReportsView,
             self::NotificationsView,
+            self::ActivityView,
             self::BillingView,
         ];
     }

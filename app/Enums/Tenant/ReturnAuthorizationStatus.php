@@ -10,6 +10,9 @@ enum ReturnAuthorizationStatus: string
     case Requested = 'requested';
     case Approved = 'approved';
     case Received = 'received';
+    case Inspected = 'inspected';
+    case Replaced = 'replaced';
+    case Repaired = 'repaired';
     case Refunded = 'refunded';
     case Cancelled = 'cancelled';
 }

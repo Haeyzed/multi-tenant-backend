@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\IndexReturnAuthorizationRequest;
+use App\Http\Requests\Tenant\InspectReturnAuthorizationRequest;
 use App\Http\Requests\Tenant\StoreReturnAuthorizationRequest;
 use App\Http\Requests\Tenant\UpdateReturnAuthorizationRequest;
 use App\Http\Resources\ResourceCollection;
@@ -115,6 +116,40 @@ class ReturnAuthorizationController extends Controller
 
         return (new ReturnAuthorizationResource($this->returnAuthorizations->receive($returnAuthorization)))
             ->withMessage('Return received successfully.');
+    }
+
+    /**
+     * @operationId inspectReturn
+     */
+    #[PathParameter('return_authorization', description: 'Return authorization ID.', type: 'integer', example: 1)]
+    public function inspect(InspectReturnAuthorizationRequest $request, ReturnAuthorization $returnAuthorization): ReturnAuthorizationResource
+    {
+        return (new ReturnAuthorizationResource($this->returnAuthorizations->inspect($returnAuthorization, $request->validated())))
+            ->withMessage('Return inspected successfully.');
+    }
+
+    /**
+     * @operationId replaceReturn
+     */
+    #[PathParameter('return_authorization', description: 'Return authorization ID.', type: 'integer', example: 1)]
+    public function replace(ReturnAuthorization $returnAuthorization): ReturnAuthorizationResource
+    {
+        $this->authorize('replace', $returnAuthorization);
+
+        return (new ReturnAuthorizationResource($this->returnAuthorizations->replace($returnAuthorization)))
+            ->withMessage('Replacement order created for return.');
+    }
+
+    /**
+     * @operationId repairReturn
+     */
+    #[PathParameter('return_authorization', description: 'Return authorization ID.', type: 'integer', example: 1)]
+    public function repair(ReturnAuthorization $returnAuthorization): ReturnAuthorizationResource
+    {
+        $this->authorize('repair', $returnAuthorization);
+
+        return (new ReturnAuthorizationResource($this->returnAuthorizations->repair($returnAuthorization)))
+            ->withMessage('Return marked as repaired.');
     }
 
     /**

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
+use App\Enums\Tenant\OrderStatus;
 use App\Enums\Tenant\ReturnAuthorizationStatus;
+use App\Enums\Tenant\ReturnDisposition;
 use App\Enums\Tenant\StockMovementReason;
 use App\Events\Tenant\Erp\ReturnApproved;
 use App\Events\Tenant\Erp\ReturnReceived;
@@ -35,6 +37,7 @@ final class ReturnAuthorizationService
     public function __construct(
         private StockLedgerService $ledger,
         private CreditNoteService $creditNotes,
+        private OrderService $orders,
     ) {}
 
     /**
@@ -305,7 +308,15 @@ final class ReturnAuthorizationService
      */
     public function refund(ReturnAuthorization $returnAuthorization): ReturnAuthorization
     {
-        $this->assertStatus($returnAuthorization, ReturnAuthorizationStatus::Received);
+        if (! in_array($returnAuthorization->status, [
+            ReturnAuthorizationStatus::Received,
+            ReturnAuthorizationStatus::Inspected,
+            ReturnAuthorizationStatus::Repaired,
+        ], true)) {
+            throw ValidationException::withMessages([
+                'status' => ['Return must be received, inspected, or repaired to refund.'],
+            ]);
+        }
 
         return DB::transaction(function () use ($returnAuthorization): ReturnAuthorization {
             /** @var Tenant $tenant */
@@ -349,6 +360,69 @@ final class ReturnAuthorizationService
 
             return $returnAuthorization;
         });
+    }
+
+    /**
+     * @param  array{inspection_notes?: string|null, disposition: string}  $data
+     *
+     * @throws Throwable
+     */
+    public function inspect(ReturnAuthorization $returnAuthorization, array $data): ReturnAuthorization
+    {
+        $this->assertStatus($returnAuthorization, ReturnAuthorizationStatus::Received);
+
+        $returnAuthorization->update([
+            'status' => ReturnAuthorizationStatus::Inspected,
+            'inspection_notes' => $data['inspection_notes'] ?? null,
+            'disposition' => $data['disposition'],
+            'inspected_at' => now(),
+            'inspected_by' => auth()->id(),
+        ]);
+
+        return $this->find($returnAuthorization->refresh());
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function replace(ReturnAuthorization $returnAuthorization): ReturnAuthorization
+    {
+        $this->assertStatus($returnAuthorization, ReturnAuthorizationStatus::Inspected);
+
+        return DB::transaction(function () use ($returnAuthorization): ReturnAuthorization {
+            $returnAuthorization->loadMissing(['items', 'order']);
+
+            $replacement = $this->orders->create([
+                'customer_id' => $returnAuthorization->customer_id,
+                'warehouse_id' => $returnAuthorization->warehouse_id ?? $returnAuthorization->order->warehouse_id,
+                'status' => OrderStatus::Draft->value,
+                'notes' => "Replacement for return {$returnAuthorization->number}",
+                'items' => $returnAuthorization->items->map(fn ($item): array => [
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                ])->all(),
+            ]);
+
+            $returnAuthorization->update([
+                'status' => ReturnAuthorizationStatus::Replaced,
+                'disposition' => ReturnDisposition::Replace->value,
+                'replacement_order_id' => $replacement->id,
+            ]);
+
+            return $this->find($returnAuthorization->refresh());
+        });
+    }
+
+    public function repair(ReturnAuthorization $returnAuthorization): ReturnAuthorization
+    {
+        $this->assertStatus($returnAuthorization, ReturnAuthorizationStatus::Inspected);
+
+        $returnAuthorization->update([
+            'status' => ReturnAuthorizationStatus::Repaired,
+            'disposition' => ReturnDisposition::Repair->value,
+        ]);
+
+        return $this->find($returnAuthorization->refresh());
     }
 
     public function cancel(ReturnAuthorization $returnAuthorization): ReturnAuthorization

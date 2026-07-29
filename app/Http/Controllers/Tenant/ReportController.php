@@ -58,8 +58,13 @@ class ReportController extends Controller
     {
         abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
 
+        $warehouseId = $request->input('warehouse_id');
+
         return ApiResponse::success(
-            data: $this->reports->lowStock((int) $request->integer('threshold', 5)),
+            data: $this->reports->lowStock(
+                (int) $request->integer('threshold', 5),
+                $warehouseId !== null ? (int) $warehouseId : null,
+            ),
             message: 'Low stock report retrieved successfully.',
         );
     }

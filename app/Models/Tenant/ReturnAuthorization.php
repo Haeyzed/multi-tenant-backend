@@ -25,9 +25,14 @@ use Illuminate\Support\Carbon;
  * @property ReturnAuthorizationStatus $status
  * @property string|null $reason
  * @property string|null $notes
+ * @property string|null $inspection_notes
+ * @property string|null $disposition
+ * @property int|null $replacement_order_id
  * @property Carbon|null $requested_at
  * @property Carbon|null $approved_at
  * @property Carbon|null $received_at
+ * @property Carbon|null $inspected_at
+ * @property int|null $inspected_by
  * @property Carbon|null $refunded_at
  * @property Carbon|null $cancelled_at
  * @property Carbon|null $created_at
@@ -41,12 +46,17 @@ use Illuminate\Support\Carbon;
     'warehouse_id',
     'sales_invoice_id',
     'credit_note_id',
+    'replacement_order_id',
     'status',
     'reason',
     'notes',
+    'inspection_notes',
+    'disposition',
     'requested_at',
     'approved_at',
     'received_at',
+    'inspected_at',
+    'inspected_by',
     'refunded_at',
     'cancelled_at',
 ])]
@@ -64,6 +74,7 @@ class ReturnAuthorization extends Model
             'requested_at' => 'datetime',
             'approved_at' => 'datetime',
             'received_at' => 'datetime',
+            'inspected_at' => 'datetime',
             'refunded_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];
@@ -107,6 +118,22 @@ class ReturnAuthorization extends Model
     public function creditNote(): BelongsTo
     {
         return $this->belongsTo(CreditNote::class);
+    }
+
+    /**
+     * @return BelongsTo<Order, $this>
+     */
+    public function replacementOrder(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'replacement_order_id');
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function inspector(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'inspected_by');
     }
 
     /**

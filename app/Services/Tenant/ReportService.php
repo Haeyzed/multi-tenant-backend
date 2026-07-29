@@ -147,6 +147,79 @@ final class ReportService
     }
 
     /**
+     * @return list<array{
+     *     product_id: int,
+     *     sku: string,
+     *     name: string,
+     *     warehouse_id: int,
+     *     on_hand: int,
+     *     reorder_point: int,
+     *     safety_stock: int|null,
+     *     min_stock: int|null,
+     *     max_stock: int|null
+     * }>
+     */
+    public function lowStock(int $threshold = 5, ?int $warehouseId = null): array
+    {
+        $query = DB::table('warehouse_stocks')
+            ->join('products', 'products.id', '=', 'warehouse_stocks.product_id')
+            ->whereNull('products.deleted_at')
+            ->where('products.track_inventory', true)
+            ->select([
+                'products.id as product_id',
+                'products.sku',
+                'products.name',
+                'warehouse_stocks.warehouse_id',
+                'warehouse_stocks.quantity',
+                'warehouse_stocks.reorder_point as stock_reorder_point',
+                'warehouse_stocks.safety_stock as stock_safety_stock',
+                'warehouse_stocks.min_stock as stock_min_stock',
+                'warehouse_stocks.max_stock as stock_max_stock',
+                'products.reorder_point as product_reorder_point',
+                'products.safety_stock as product_safety_stock',
+                'products.min_stock as product_min_stock',
+                'products.max_stock as product_max_stock',
+            ]);
+
+        if ($warehouseId !== null) {
+            $query->where('warehouse_stocks.warehouse_id', $warehouseId);
+        }
+
+        return $query->get()
+            ->map(function ($row) use ($threshold): ?array {
+                $onHand = (int) $row->quantity;
+                $reorderPoint = $row->stock_reorder_point !== null
+                    ? (int) $row->stock_reorder_point
+                    : ($row->product_reorder_point !== null ? (int) $row->product_reorder_point : $threshold);
+
+                if ($onHand > $reorderPoint) {
+                    return null;
+                }
+
+                return [
+                    'product_id' => (int) $row->product_id,
+                    'sku' => (string) $row->sku,
+                    'name' => (string) $row->name,
+                    'warehouse_id' => (int) $row->warehouse_id,
+                    'on_hand' => $onHand,
+                    'reorder_point' => $reorderPoint,
+                    'safety_stock' => $row->stock_safety_stock !== null
+                        ? (int) $row->stock_safety_stock
+                        : ($row->product_safety_stock !== null ? (int) $row->product_safety_stock : null),
+                    'min_stock' => $row->stock_min_stock !== null
+                        ? (int) $row->stock_min_stock
+                        : ($row->product_min_stock !== null ? (int) $row->product_min_stock : null),
+                    'max_stock' => $row->stock_max_stock !== null
+                        ? (int) $row->stock_max_stock
+                        : ($row->product_max_stock !== null ? (int) $row->product_max_stock : null),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
      * Approximate gross profit using order line revenue minus product average cost × qty.
      *
      * @return array{from: string|null, to: string|null, revenue: int, cost: int, gross_profit: int, margin_bps: int}
