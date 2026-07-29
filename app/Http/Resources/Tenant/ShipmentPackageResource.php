@@ -25,6 +25,9 @@ class ShipmentPackageResource extends Resource
         return [
             'id' => $this->id,
             'label' => $this->label,
+            'label_provider' => $this->label_provider,
+            'label_url' => $this->label_url,
+            'label_payload' => $this->label_payload,
             'weight_grams' => $this->weight_grams,
             'dimensions' => $this->dimensions,
             'tracking_number' => $this->tracking_number,

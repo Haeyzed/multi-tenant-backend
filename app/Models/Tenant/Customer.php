@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Enums\Tenant\CustomerType;
 use Database\Factories\Tenant\CustomerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -24,11 +25,13 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int $id
  * @property string|null $code
  * @property int|null $customer_group_id
+ * @property CustomerType|null $type
  * @property string $name
  * @property string|null $email
  * @property string|null $phone
  * @property string|null $company
  * @property int|null $credit_limit
+ * @property string|null $payment_terms
  * @property string|null $currency
  * @property bool $tax_exempt
  * @property string|null $tax_id
@@ -48,11 +51,13 @@ use Spatie\Activitylog\Support\LogOptions;
 #[Fillable([
     'code',
     'customer_group_id',
+    'type',
     'name',
     'email',
     'phone',
     'company',
     'credit_limit',
+    'payment_terms',
     'currency',
     'tax_exempt',
     'tax_id',
@@ -68,7 +73,7 @@ class Customer extends Model
     {
         return LogOptions::defaults()
             ->useLogName('tenant')
-            ->logOnly(['name', 'email', 'phone', 'company', 'customer_group_id', 'credit_limit', 'is_active'])
+            ->logOnly(['name', 'email', 'phone', 'company', 'customer_group_id', 'type', 'credit_limit', 'payment_terms', 'is_active'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
     }
@@ -79,6 +84,7 @@ class Customer extends Model
     protected function casts(): array
     {
         return [
+            'type' => CustomerType::class,
             'credit_limit' => 'integer',
             'tax_exempt' => 'boolean',
             'is_active' => 'boolean',

@@ -29,6 +29,7 @@ class UpdateSupplierRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'code' => ['sometimes', 'string', 'max:255', Rule::unique('suppliers', 'code')->ignore($supplier)],
+            'supplier_group_id' => ['nullable', 'integer', 'exists:supplier_groups,id'],
             'email' => ['nullable', 'string', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],

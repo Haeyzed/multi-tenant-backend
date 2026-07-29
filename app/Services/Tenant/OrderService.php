@@ -14,6 +14,7 @@ use App\Models\Tenant;
 use App\Models\Tenant\Channel;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Order;
+use App\Models\Tenant\OrderItem;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\SalesInvoice;
 use App\Models\Tenant\SalesPaymentAllocation;
@@ -79,6 +80,8 @@ final class OrderService
                 AllowedInclude::relationship('warehouse'),
                 AllowedInclude::relationship('channel'),
                 AllowedInclude::relationship('posSession'),
+                AllowedInclude::relationship('parent'),
+                AllowedInclude::relationship('children'),
             )
             ->defaultSort('-created_at')
             ->with(['customer', 'items'])
@@ -317,11 +320,166 @@ final class OrderService
     }
 
     /**
+     * Split remaining unfulfilled quantities into a child order.
+     *
+     * @param  list<array{product_id: int, quantity: int}>  $lines
+     *
+     * @throws Throwable
+     */
+    public function split(Order $order, array $lines, ?string $childStatus = null): Order
+    {
+        return DB::transaction(function () use ($order, $lines, $childStatus): Order {
+            if (in_array($order->status, [OrderStatus::Cancelled, OrderStatus::Fulfilled], true)) {
+                throw ValidationException::withMessages([
+                    'order' => ['Fulfilled or cancelled orders cannot be split.'],
+                ]);
+            }
+
+            $order->loadMissing('items');
+            $status = OrderStatus::tryFrom($childStatus ?? OrderStatus::Pending->value) ?? OrderStatus::Pending;
+
+            if (! in_array($status, [OrderStatus::Draft, OrderStatus::Pending], true)) {
+                throw ValidationException::withMessages([
+                    'status' => ['Child orders may only be created as draft or pending.'],
+                ]);
+            }
+
+            $childLines = [];
+
+            foreach ($lines as $line) {
+                $productId = (int) $line['product_id'];
+                $quantity = (int) $line['quantity'];
+
+                /** @var OrderItem|null $item */
+                $item = $order->items->firstWhere('product_id', $productId);
+
+                if ($item === null) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Product #{$productId} is not on this order."],
+                    ]);
+                }
+
+                $remaining = $item->quantity - $item->quantity_fulfilled;
+
+                if ($quantity > $remaining) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Cannot split more than remaining unfulfilled quantity for product #{$productId}."],
+                    ]);
+                }
+
+                if ($order->inventory_decremented && $order->warehouse_id !== null) {
+                    $this->restoreInventoryQuantity($order, $item, $quantity);
+                }
+
+                $childLines[] = [
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product_name,
+                    'product_sku' => $item->product_sku,
+                    'quantity' => $quantity,
+                    'unit_price' => $item->unit_price,
+                    'line_total' => $item->unit_price * $quantity,
+                ];
+
+                $newQuantity = $item->quantity - $quantity;
+
+                if ($newQuantity <= 0) {
+                    $item->delete();
+                } else {
+                    $item->quantity = $newQuantity;
+                    $item->line_total = $item->unit_price * $newQuantity;
+                    $item->save();
+                }
+            }
+
+            $order->refresh()->load('items');
+
+            if ($order->items->isEmpty()) {
+                throw ValidationException::withMessages([
+                    'items' => ['Cannot split the entire order; at least one line must remain on the parent.'],
+                ]);
+            }
+
+            $subtotal = (int) $order->items->sum('line_total');
+            $tax = $order->tax_id !== null ? Tax::query()->find($order->tax_id) : null;
+            $taxAmount = $tax?->calculateTax($subtotal) ?? 0;
+
+            $order->forceFill([
+                'subtotal' => $subtotal,
+                'tax' => $taxAmount,
+                'total' => $subtotal + $taxAmount,
+            ])->save();
+
+            $childSubtotal = array_sum(array_column($childLines, 'line_total'));
+            $childTaxAmount = $tax?->calculateTax($childSubtotal) ?? 0;
+
+            /** @var Tenant $tenant */
+            $tenant = tenant();
+            $this->entitlements->assertCanCreateOrder($tenant);
+
+            /** @var Order $child */
+            $child = Order::query()->create([
+                'number' => 'ORD-'.Str::upper(Str::random(10)),
+                'customer_id' => $order->customer_id,
+                'tax_id' => $order->tax_id,
+                'warehouse_id' => $order->warehouse_id,
+                'channel_id' => $order->channel_id,
+                'pos_session_id' => $order->pos_session_id,
+                'parent_order_id' => $order->id,
+                'status' => $status,
+                'currency' => $order->currency,
+                'subtotal' => $childSubtotal,
+                'tax' => $childTaxAmount,
+                'total' => $childSubtotal + $childTaxAmount,
+                'notes' => $order->notes,
+                'placed_at' => $status === OrderStatus::Draft ? null : now(),
+                'inventory_decremented' => false,
+            ]);
+
+            foreach ($childLines as $line) {
+                $child->items()->create($line);
+            }
+
+            if ($status === OrderStatus::Pending && $child->warehouse_id !== null) {
+                $this->reserveOrderStock($child->load('items'));
+            }
+
+            return $child->refresh()->load(['customer', 'items', 'parent']);
+        });
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function markBackordered(Order $order): Order
+    {
+        return DB::transaction(function () use ($order): Order {
+            if (in_array($order->status, [OrderStatus::Cancelled, OrderStatus::Fulfilled], true)) {
+                throw ValidationException::withMessages([
+                    'order' => ['Fulfilled or cancelled orders cannot be marked backordered.'],
+                ]);
+            }
+
+            if ($order->inventory_decremented) {
+                $this->restoreInventory($order);
+            } else {
+                $this->reservations->releaseForOrder($order);
+            }
+
+            $order->forceFill([
+                'status' => OrderStatus::Backordered,
+                'placed_at' => $order->placed_at ?? now(),
+            ])->save();
+
+            return $order->refresh()->load(['customer', 'items', 'salesInvoice', 'taxRate', 'warehouse']);
+        });
+    }
+
+    /**
      * @throws Throwable
      */
     private function syncInventoryAndInvoice(Order $order): void
     {
-        if ($order->status === OrderStatus::Cancelled) {
+        if ($order->status === OrderStatus::Cancelled || $order->status === OrderStatus::Backordered) {
             $this->restoreInventory($order);
             $this->reservations->releaseForOrder($order);
 
@@ -336,12 +494,44 @@ final class OrderService
 
     private function shouldEnforceStock(OrderStatus $status): bool
     {
-        return $status !== OrderStatus::Draft && $status !== OrderStatus::Cancelled;
+        return ! in_array($status, [OrderStatus::Draft, OrderStatus::Cancelled, OrderStatus::Backordered], true);
     }
 
     private function shouldDecrementInventory(OrderStatus $status): bool
     {
         return $status === OrderStatus::Confirmed || $status === OrderStatus::Fulfilled;
+    }
+
+    /**
+     * Restore ledger stock for a portion of a previously decremented order line.
+     */
+    private function restoreInventoryQuantity(Order $order, OrderItem $item, int $quantity): void
+    {
+        if ($order->warehouse_id === null) {
+            return;
+        }
+
+        /** @var Warehouse $warehouse */
+        $warehouse = Warehouse::query()->findOrFail($order->warehouse_id);
+        /** @var Product $product */
+        $product = Product::query()->findOrFail($item->product_id);
+
+        foreach ($this->bundles->explodeForOrder($product, $quantity) as $line) {
+            $component = $line['product'];
+
+            if (! $component->track_inventory) {
+                continue;
+            }
+
+            $this->ledger->move(
+                warehouse: $warehouse,
+                product: $component,
+                quantityDelta: $line['quantity'],
+                reason: StockMovementReason::Adjustment,
+                reference: $order,
+                notes: "Split restore for order {$order->number}",
+            );
+        }
     }
 
     private function applyInventory(Order $order): void

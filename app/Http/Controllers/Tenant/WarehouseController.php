@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Tenant\AdjustWarehouseStockBucketsRequest;
 use App\Http\Requests\Tenant\AdjustWarehouseStockRequest;
 use App\Http\Requests\Tenant\IndexWarehouseRequest;
 use App\Http\Requests\Tenant\StoreWarehouseRequest;
@@ -101,6 +102,24 @@ class WarehouseController extends Controller
         return ApiResponse::success(
             data: (new WarehouseStockResource($stock->load(['warehouse', 'product'])))->resolve(),
             message: 'Warehouse stock adjusted successfully.',
+        );
+    }
+
+    /**
+     * @operationId adjustWarehouseStockBuckets
+     */
+    #[PathParameter('warehouse', description: 'Warehouse ID.', type: 'integer', example: 1)]
+    public function adjustStockBuckets(AdjustWarehouseStockBucketsRequest $request, Warehouse $warehouse): JsonResponse
+    {
+        $stock = $this->warehouses->adjustStockBuckets(
+            $warehouse,
+            $request->integer('product_id'),
+            $request->safe()->only(['damaged_quantity', 'on_hold_quantity', 'absolute']),
+        );
+
+        return ApiResponse::success(
+            data: (new WarehouseStockResource($stock->load(['warehouse', 'product'])))->resolve(),
+            message: 'Warehouse stock buckets adjusted successfully.',
         );
     }
 }

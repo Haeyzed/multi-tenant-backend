@@ -24,6 +24,7 @@ class SupplierResource extends Resource
     {
         return [
             'id' => $this->id,
+            'supplier_group_id' => $this->supplier_group_id,
             'name' => $this->name,
             'code' => $this->code,
             'email' => $this->email,
@@ -33,6 +34,7 @@ class SupplierResource extends Resource
             'tax_id' => $this->tax_id,
             'notes' => $this->notes,
             'is_active' => $this->is_active,
+            'group' => new SupplierGroupResource($this->whenLoaded('group')),
             'products' => SupplierProductResource::collection($this->whenLoaded('products')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

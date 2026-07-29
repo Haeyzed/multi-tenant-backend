@@ -6,11 +6,14 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\IndexShipmentRequest;
+use App\Http\Requests\Tenant\PurchaseShipmentLabelRequest;
 use App\Http\Requests\Tenant\StoreShipmentRequest;
 use App\Http\Resources\ResourceCollection;
+use App\Http\Resources\Tenant\ShipmentPackageResource;
 use App\Http\Resources\Tenant\ShipmentResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Tenant\Shipment;
+use App\Models\Tenant\ShipmentPackage;
 use App\Services\Tenant\ShipmentService;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\PathParameter;
@@ -56,6 +59,21 @@ class ShipmentController extends Controller
 
         return (new ShipmentResource($this->shipments->find($shipment)))
             ->withMessage('Shipment retrieved successfully.');
+    }
+
+    /**
+     * @operationId purchaseShipmentPackageLabel
+     */
+    #[PathParameter('shipment', description: 'Shipment ID.', type: 'integer', example: 1)]
+    #[PathParameter('package', description: 'Shipment package ID.', type: 'integer', example: 1)]
+    public function purchaseLabel(PurchaseShipmentLabelRequest $request, Shipment $shipment, ShipmentPackage $package): JsonResponse
+    {
+        $package = $this->shipments->purchaseLabel($shipment, $package);
+
+        return ApiResponse::success(
+            data: (new ShipmentPackageResource($package))->resolve(),
+            message: 'Shipment package label purchased successfully.',
+        );
     }
 
     /**

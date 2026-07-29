@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\Order;
 use App\Models\Tenant\Product;
+use App\Models\Tenant\ShipmentPackage;
 use App\Models\Tenant\StockLedgerEntry;
 use App\Models\Tenant\User;
 use App\Models\Tenant\Warehouse;
@@ -141,6 +142,46 @@ it('manages shipping carriers zones methods and shipment carrier links', functio
         ->assertJsonPath('data.shipping_method_id', $method['id'])
         ->assertJsonPath('data.carrier', 'DHL Express')
         ->assertJsonPath('data.tracking_number', 'TRACK-1');
+
+    $tenant->delete();
+});
+
+it('purchases a manual shipping label for a shipment package', function (): void {
+    [$tenant, $token, $warehouse, $product, $customer] = returnsShippingContext('purchase-label.localhost');
+
+    $orderId = $this->withToken($token)
+        ->postJson('http://purchase-label.localhost/api/orders', [
+            'customer_id' => $customer->id,
+            'warehouse_id' => $warehouse->id,
+            'status' => OrderStatus::Confirmed->value,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ])
+        ->assertCreated()
+        ->json('data.id');
+
+    $shipmentId = $this->withToken($token)
+        ->postJson('http://purchase-label.localhost/api/shipments', [
+            'order_id' => $orderId,
+            'packages' => [
+                [
+                    'label' => 'PKG-1',
+                    'tracking_number' => 'TRACK-17',
+                ],
+            ],
+        ])
+        ->assertCreated()
+        ->json('data.id');
+
+    $packageId = $tenant->run(fn (): int => (int) ShipmentPackage::query()->where('shipment_id', $shipmentId)->value('id'));
+
+    $this->withToken($token)
+        ->postJson("http://purchase-label.localhost/api/shipments/{$shipmentId}/packages/{$packageId}/purchase-label")
+        ->assertSuccessful()
+        ->assertJsonPath('data.label_provider', 'manual')
+        ->assertJsonPath('data.label', 'PKG-1')
+        ->assertJsonPath('data.tracking_number', 'TRACK-17');
 
     $tenant->delete();
 });

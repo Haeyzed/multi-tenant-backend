@@ -25,6 +25,7 @@ class StoreStockLotRequest extends FormRequest
             'lot_number' => ['required', 'string', 'max:255'],
             'quantity' => ['required', 'integer', 'min:1'],
             'expires_at' => ['nullable', 'date'],
+            'manufactured_at' => ['nullable', 'date'],
             'received_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
             'unit_cost' => ['nullable', 'integer', 'min:0'],

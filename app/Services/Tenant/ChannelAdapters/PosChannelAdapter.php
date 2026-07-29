@@ -39,6 +39,16 @@ final class PosChannelAdapter implements ChannelAdapter
         return $synced;
     }
 
+    public function pullOrders(Channel $channel): int
+    {
+        return 0;
+    }
+
+    public function acknowledgeOrder(Channel $channel, string $externalId): void
+    {
+        // Local POS orders are already acknowledged at the point of sale.
+    }
+
     public function publishProduct(Channel $channel, Product $product): void
     {
         $warehouseId = $channel->warehouse_id;

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Contracts\Tenant\InventoryValuationStrategy;
+use App\Contracts\Tenant\PushSender;
+use App\Contracts\Tenant\ShippingLabelProvider;
+use App\Contracts\Tenant\SmsSender;
 use App\Enums\Billing\FeatureFlagKey;
 use App\Events\Tenant\Erp\ApprovalDecided;
 use App\Events\Tenant\Erp\GiftCardRedeemed;
@@ -31,6 +34,9 @@ use App\Services\Central\FeatureFlagService;
 use App\Services\Central\TenantApiQuotaService;
 use App\Services\Tenant\FifoCostService;
 use App\Services\Tenant\LifoCostService;
+use App\Services\Tenant\Notifications\LogSmsSender;
+use App\Services\Tenant\Notifications\NullPushSender;
+use App\Services\Tenant\Shipping\ManualShippingLabelProvider;
 use App\Services\Tenant\WeightedAverageCostService;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -51,6 +57,10 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         Scramble::ignoreDefaultRoutes();
+
+        $this->app->bind(ShippingLabelProvider::class, ManualShippingLabelProvider::class);
+        $this->app->bind(SmsSender::class, LogSmsSender::class);
+        $this->app->bind(PushSender::class, NullPushSender::class);
 
         $this->app->bind(InventoryValuationStrategy::class, function ($app): InventoryValuationStrategy {
             $flags = $app->make(FeatureFlagService::class);

@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $product_id
  * @property string $lot_number
  * @property Carbon|null $expires_at
+ * @property Carbon|null $manufactured_at
  * @property int $quantity
  * @property int|null $unit_cost
  * @property Carbon|null $received_at
@@ -28,6 +29,7 @@ use Illuminate\Support\Carbon;
     'product_id',
     'lot_number',
     'expires_at',
+    'manufactured_at',
     'quantity',
     'unit_cost',
     'received_at',
@@ -42,6 +44,7 @@ class StockLot extends Model
     {
         return [
             'expires_at' => 'datetime',
+            'manufactured_at' => 'datetime',
             'quantity' => 'integer',
             'unit_cost' => 'integer',
             'received_at' => 'datetime',

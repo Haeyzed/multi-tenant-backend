@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Tenant;
 
+use App\Enums\Tenant\CustomerType;
 use App\Models\Tenant\Customer;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCustomerRequest extends FormRequest
 {
@@ -23,10 +25,12 @@ class StoreCustomerRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:64', 'unique:customers,code'],
             'customer_group_id' => ['nullable', 'integer', 'exists:customer_groups,id'],
+            'type' => ['nullable', Rule::enum(CustomerType::class)],
             'email' => ['nullable', 'string', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'company' => ['nullable', 'string', 'max:255'],
             'credit_limit' => ['nullable', 'integer', 'min:0'],
+            'payment_terms' => ['nullable', 'string', 'max:64'],
             'currency' => ['nullable', 'string', 'size:3'],
             'tax_exempt' => ['sometimes', 'boolean'],
             'tax_id' => ['nullable', 'string', 'max:64'],

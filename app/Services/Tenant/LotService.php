@@ -109,10 +109,15 @@ final class LotService
                 $lot->quantity = 0;
                 $lot->received_at = $data['received_at'] ?? now();
                 $lot->expires_at = $data['expires_at'] ?? null;
+                $lot->manufactured_at = $data['manufactured_at'] ?? null;
                 $lot->notes = $data['notes'] ?? null;
             } else {
                 if (isset($data['expires_at'])) {
                     $lot->expires_at = $data['expires_at'];
+                }
+
+                if (array_key_exists('manufactured_at', $data)) {
+                    $lot->manufactured_at = $data['manufactured_at'];
                 }
 
                 if (isset($data['notes'])) {

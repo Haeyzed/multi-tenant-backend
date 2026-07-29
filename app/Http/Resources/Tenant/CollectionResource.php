@@ -30,6 +30,10 @@ class CollectionResource extends Resource
             'type' => $this->type,
             'is_featured' => $this->is_featured,
             'is_active' => $this->is_active,
+            'starts_at' => $this->starts_at,
+            'ends_at' => $this->ends_at,
+            'is_in_season' => ($this->starts_at === null || $this->starts_at->isPast())
+                && ($this->ends_at === null || $this->ends_at->isFuture()),
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'products_count' => $this->when(isset($this->products_count), $this->products_count),

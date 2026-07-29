@@ -28,6 +28,8 @@ class StoreCollectionRequest extends FormRequest
             'type' => ['sometimes', Rule::enum(CollectionType::class)],
             'is_featured' => ['sometimes', 'boolean'],
             'is_active' => ['sometimes', 'boolean'],
+            'starts_at' => ['nullable', 'date'],
+            'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:512'],
             'rules' => ['sometimes', 'array'],

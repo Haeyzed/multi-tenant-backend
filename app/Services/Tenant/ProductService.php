@@ -73,6 +73,8 @@ final class ProductService
 
         $product = Product::query()->create([
             'category_id' => $categoryId,
+            'product_family_id' => $data['product_family_id'] ?? null,
+            'attribute_set_id' => $data['attribute_set_id'] ?? null,
             'type' => $this->resolveType($data['type'] ?? ProductType::Simple),
             'status' => $status,
             'brand_id' => $data['brand_id'] ?? null,
@@ -88,6 +90,10 @@ final class ProductService
             'track_inventory' => $data['track_inventory'] ?? $stockQuantity !== null,
             'gtin' => $data['gtin'] ?? null,
             'barcode' => $data['barcode'] ?? null,
+            'upc' => $data['upc'] ?? null,
+            'ean' => $data['ean'] ?? null,
+            'isbn' => $data['isbn'] ?? null,
+            'qr_code' => $data['qr_code'] ?? null,
             'meta_title' => $data['meta_title'] ?? null,
             'meta_description' => $data['meta_description'] ?? null,
             'meta_keywords' => $data['meta_keywords'] ?? null,

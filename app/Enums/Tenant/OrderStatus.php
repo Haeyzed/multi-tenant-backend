@@ -16,5 +16,6 @@ enum OrderStatus: string
     case Confirmed = 'confirmed';
     case PartiallyFulfilled = 'partially_fulfilled';
     case Fulfilled = 'fulfilled';
+    case Backordered = 'backordered';
     case Cancelled = 'cancelled';
 }

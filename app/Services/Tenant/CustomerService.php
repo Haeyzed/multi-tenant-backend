@@ -83,11 +83,13 @@ final class CustomerService
         $customer = Customer::query()->create([
             'code' => isset($data['code']) ? strtoupper($data['code']) : $this->generateCode(),
             'customer_group_id' => $data['customer_group_id'] ?? null,
+            'type' => $data['type'] ?? null,
             'name' => $data['name'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
             'company' => $data['company'] ?? null,
             'credit_limit' => $data['credit_limit'] ?? null,
+            'payment_terms' => $data['payment_terms'] ?? null,
             'currency' => isset($data['currency']) ? strtoupper($data['currency']) : null,
             'tax_exempt' => $data['tax_exempt'] ?? false,
             'tax_id' => $data['tax_id'] ?? null,

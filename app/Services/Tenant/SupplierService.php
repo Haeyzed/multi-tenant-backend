@@ -69,6 +69,7 @@ final class SupplierService
     public function create(array $data): Supplier
     {
         $supplier = Supplier::query()->create([
+            'supplier_group_id' => $data['supplier_group_id'] ?? null,
             'name' => $data['name'],
             'code' => isset($data['code']) ? strtoupper($data['code']) : $this->generateCode(),
             'email' => $data['email'] ?? null,
@@ -89,7 +90,7 @@ final class SupplierService
 
     public function find(Supplier $supplier): Supplier
     {
-        return $supplier->load(['products.product']);
+        return $supplier->load(['products.product', 'group']);
     }
 
     /**

@@ -144,6 +144,83 @@ class ReportController extends Controller
         );
     }
 
+    /**
+     * @operationId arAgingReport
+     */
+    public function arAging(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        return ApiResponse::success(
+            data: $this->reports->arAging($this->date($request->input('as_of'))),
+            message: 'Accounts receivable ageing report retrieved successfully.',
+        );
+    }
+
+    /**
+     * @operationId customerSummaryReport
+     */
+    public function customerSummary(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        return ApiResponse::success(
+            data: $this->reports->customerSummary(
+                $this->date($request->input('from')),
+                $this->date($request->input('to')),
+                max(1, min(100, (int) $request->integer('limit', 50))),
+            ),
+            message: 'Customer summary report retrieved successfully.',
+        );
+    }
+
+    /**
+     * @operationId warehouseSummaryReport
+     */
+    public function warehouseSummary(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        $warehouseId = $request->filled('warehouse_id') ? $request->integer('warehouse_id') : null;
+
+        return ApiResponse::success(
+            data: $this->reports->warehouseSummary($warehouseId),
+            message: 'Warehouse summary report retrieved successfully.',
+        );
+    }
+
+    /**
+     * @operationId incomingStockReport
+     */
+    public function incomingStock(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        $warehouseId = $request->filled('warehouse_id') ? $request->integer('warehouse_id') : null;
+
+        return ApiResponse::success(
+            data: $this->reports->incomingStock($warehouseId, $this->date($request->input('as_of'))),
+            message: 'Incoming stock report retrieved successfully.',
+        );
+    }
+
+    /**
+     * @operationId demandForecastReport
+     */
+    public function demandForecast(ReportRequest $request): JsonResponse
+    {
+        abort_unless(request()->user()?->can(Permission::ReportsView->value) ?? false, 403);
+
+        return ApiResponse::success(
+            data: $this->reports->demandForecast(
+                $this->date($request->input('from')),
+                $this->date($request->input('to')),
+                max(1, min(365, (int) $request->integer('horizon_days', 30))),
+            ),
+            message: 'Demand forecast report retrieved successfully.',
+        );
+    }
+
     private function date(mixed $value): ?Carbon
     {
         if ($value === null || $value === '') {

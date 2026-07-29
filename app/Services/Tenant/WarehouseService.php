@@ -12,6 +12,8 @@ use App\Models\Tenant\Warehouse;
 use App\Models\Tenant\WarehouseStock;
 use App\Services\Billing\EntitlementEnforcer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -152,6 +154,90 @@ final class WarehouseService
             ->where('warehouse_id', $warehouse->id)
             ->where('product_id', $productId)
             ->firstOrFail();
+    }
+
+    /**
+     * Adjust damaged / on-hold quantity buckets for a warehouse stock row.
+     *
+     * Damaged qty is moved out of sellable on-hand. On-hold remains in on-hand but reduces available.
+     *
+     * @param  array{damaged_quantity?: int, on_hold_quantity?: int, absolute?: bool}  $data
+     *
+     * @throws Throwable
+     */
+    public function adjustStockBuckets(Warehouse $warehouse, int $productId, array $data): WarehouseStock
+    {
+        return DB::transaction(function () use ($warehouse, $productId, $data): WarehouseStock {
+            Product::query()->findOrFail($productId);
+
+            /** @var WarehouseStock $stock */
+            $stock = WarehouseStock::query()->firstOrCreate(
+                [
+                    'warehouse_id' => $warehouse->id,
+                    'product_id' => $productId,
+                ],
+                [
+                    'quantity' => 0,
+                    'damaged_quantity' => 0,
+                    'on_hold_quantity' => 0,
+                ],
+            );
+
+            $stock = WarehouseStock::query()->whereKey($stock->id)->lockForUpdate()->firstOrFail();
+            $absolute = (bool) ($data['absolute'] ?? false);
+
+            if (array_key_exists('damaged_quantity', $data)) {
+                $targetDamaged = max(0, (int) $data['damaged_quantity']);
+                $currentDamaged = (int) $stock->damaged_quantity;
+                $deltaDamaged = $absolute ? $targetDamaged - $currentDamaged : $targetDamaged;
+
+                if ($deltaDamaged > 0) {
+                    $availableToDamage = max(0, (int) $stock->quantity - (int) $stock->on_hold_quantity);
+
+                    if ($deltaDamaged > $availableToDamage) {
+                        throw ValidationException::withMessages([
+                            'damaged_quantity' => ['Damaged quantity cannot exceed sellable on-hand after on-hold.'],
+                        ]);
+                    }
+
+                    $stock->quantity -= $deltaDamaged;
+                    $stock->damaged_quantity += $deltaDamaged;
+                } elseif ($deltaDamaged < 0) {
+                    $restore = min(abs($deltaDamaged), $currentDamaged);
+                    $stock->damaged_quantity -= $restore;
+                    $stock->quantity += $restore;
+                }
+            }
+
+            if (array_key_exists('on_hold_quantity', $data)) {
+                $targetHold = max(0, (int) $data['on_hold_quantity']);
+                $currentHold = (int) $stock->on_hold_quantity;
+                $newHold = $absolute ? $targetHold : $currentHold + $targetHold;
+
+                if ($newHold < 0) {
+                    $newHold = 0;
+                }
+
+                if ($newHold > (int) $stock->quantity) {
+                    throw ValidationException::withMessages([
+                        'on_hold_quantity' => ['On-hold quantity cannot exceed on-hand quantity.'],
+                    ]);
+                }
+
+                $stock->on_hold_quantity = $newHold;
+            }
+
+            $stock->save();
+
+            Product::query()
+                ->whereKey($productId)
+                ->update([
+                    'stock_quantity' => (int) WarehouseStock::query()->where('product_id', $productId)->sum('quantity'),
+                    'track_inventory' => true,
+                ]);
+
+            return $stock->refresh();
+        });
     }
 
     /**

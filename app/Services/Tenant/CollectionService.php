@@ -61,6 +61,8 @@ final class CollectionService
             'type' => $data['type'] ?? CollectionType::Manual,
             'is_featured' => $data['is_featured'] ?? false,
             'is_active' => $data['is_active'] ?? true,
+            'starts_at' => $data['starts_at'] ?? null,
+            'ends_at' => $data['ends_at'] ?? null,
             'meta_title' => $data['meta_title'] ?? null,
             'meta_description' => $data['meta_description'] ?? null,
         ]);

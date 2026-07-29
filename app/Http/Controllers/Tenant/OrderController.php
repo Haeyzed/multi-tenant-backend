@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\IndexOrderRequest;
+use App\Http\Requests\Tenant\MarkOrderBackorderedRequest;
+use App\Http\Requests\Tenant\SplitOrderRequest;
 use App\Http\Requests\Tenant\StoreOrderRequest;
 use App\Http\Requests\Tenant\UpdateOrderRequest;
 use App\Http\Resources\ResourceCollection;
@@ -79,5 +81,31 @@ class OrderController extends Controller
         $this->orders->delete($order);
 
         return ApiResponse::success(message: 'Order deleted successfully.');
+    }
+
+    /**
+     * @operationId splitOrder
+     */
+    #[PathParameter('order', description: 'Order ID.', type: 'integer', example: 1)]
+    #[DocsResponse(status: 201, description: 'Order split into child.', type: 'array{success: true, message: string, data: OrderResource, meta: null, errors: null}')]
+    public function split(SplitOrderRequest $request, Order $order): JsonResponse
+    {
+        $child = $this->orders->split($order, $request->lines(), $request->validated('status'));
+
+        return ApiResponse::success(
+            data: (new OrderResource($child))->resolve(),
+            message: 'Order split successfully.',
+            status: 201,
+        );
+    }
+
+    /**
+     * @operationId markOrderBackordered
+     */
+    #[PathParameter('order', description: 'Order ID.', type: 'integer', example: 1)]
+    public function markBackordered(MarkOrderBackorderedRequest $request, Order $order): OrderResource
+    {
+        return (new OrderResource($this->orders->markBackordered($order)))
+            ->withMessage('Order marked as backordered successfully.');
     }
 }

@@ -114,22 +114,55 @@ final class StockLedgerService
 
     public function available(Warehouse $warehouse, Product $product): int
     {
-        return max(0, $this->onHand($warehouse, $product) - $this->reserved($warehouse, $product));
+        $levels = $this->levels($warehouse, $product);
+
+        return $levels['available'];
     }
 
     /**
-     * @return array{on_hand: int, reserved: int, available: int}
+     * @return array{on_hand: int, reserved: int, on_hold: int, damaged: int, available: int, qty_on_order: int}
      */
     public function levels(Warehouse $warehouse, Product $product): array
     {
-        $onHand = $this->onHand($warehouse, $product);
+        $stock = WarehouseStock::query()
+            ->where('warehouse_id', $warehouse->id)
+            ->where('product_id', $product->id)
+            ->first();
+
+        $onHand = (int) ($stock?->quantity ?? 0);
+        $onHold = (int) ($stock?->on_hold_quantity ?? 0);
+        $damaged = (int) ($stock?->damaged_quantity ?? 0);
         $reserved = $this->reserved($warehouse, $product);
+        $qtyOnOrder = $this->qtyOnOrder($product->id, $warehouse->id);
 
         return [
             'on_hand' => $onHand,
             'reserved' => $reserved,
-            'available' => max(0, $onHand - $reserved),
+            'on_hold' => $onHold,
+            'damaged' => $damaged,
+            'available' => max(0, $onHand - $reserved - $onHold),
+            'qty_on_order' => $qtyOnOrder,
         ];
+    }
+
+    public function qtyOnOrder(int $productId, ?int $warehouseId = null): int
+    {
+        $query = DB::table('purchase_order_items')
+            ->join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_items.purchase_order_id')
+            ->whereNull('purchase_orders.deleted_at')
+            ->where('purchase_order_items.product_id', $productId)
+            ->whereIn('purchase_orders.status', [
+                'submitted',
+                'approved',
+                'partially_received',
+            ])
+            ->whereRaw('purchase_order_items.quantity > purchase_order_items.quantity_received');
+
+        if ($warehouseId !== null) {
+            $query->where('purchase_orders.warehouse_id', $warehouseId);
+        }
+
+        return (int) $query->sum(DB::raw('purchase_order_items.quantity - purchase_order_items.quantity_received'));
     }
 
     private function syncProductStockProjection(int $productId): void

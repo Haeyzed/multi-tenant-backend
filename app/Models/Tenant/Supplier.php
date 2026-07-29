@@ -9,12 +9,14 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int|null $supplier_group_id
  * @property string $name
  * @property string $code
  * @property string|null $email
@@ -27,10 +29,22 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read SupplierGroup|null $group
  * @property-read Collection<int, SupplierProduct> $products
  * @property-read Collection<int, PurchaseOrder> $purchaseOrders
  */
-#[Fillable(['name', 'code', 'email', 'phone', 'company', 'currency', 'tax_id', 'notes', 'is_active'])]
+#[Fillable([
+    'supplier_group_id',
+    'name',
+    'code',
+    'email',
+    'phone',
+    'company',
+    'currency',
+    'tax_id',
+    'notes',
+    'is_active',
+])]
 class Supplier extends Model
 {
     /** @use HasFactory<SupplierFactory> */
@@ -44,6 +58,14 @@ class Supplier extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * @return BelongsTo<SupplierGroup, $this>
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(SupplierGroup::class, 'supplier_group_id');
     }
 
     /**

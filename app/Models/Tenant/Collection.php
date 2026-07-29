@@ -33,7 +33,7 @@ use Illuminate\Support\Carbon;
  * @property-read EloquentCollection<int, CollectionRule> $rules
  * @property-read EloquentCollection<int, Product> $products
  */
-#[Fillable(['name', 'slug', 'description', 'type', 'is_featured', 'is_active', 'meta_title', 'meta_description'])]
+#[Fillable(['name', 'slug', 'description', 'type', 'is_featured', 'is_active', 'starts_at', 'ends_at', 'meta_title', 'meta_description'])]
 class Collection extends Model
 {
     /** @use HasFactory<CollectionFactory> */
@@ -48,6 +48,8 @@ class Collection extends Model
             'type' => CollectionType::class,
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
         ];
     }
 

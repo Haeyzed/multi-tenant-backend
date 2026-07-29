@@ -28,6 +28,7 @@ class StockLotResource extends Resource
             'product_id' => $this->product_id,
             'lot_number' => $this->lot_number,
             'expires_at' => $this->expires_at,
+            'manufactured_at' => $this->manufactured_at,
             'quantity' => $this->quantity,
             'unit_cost' => $this->unit_cost,
             'received_at' => $this->received_at,

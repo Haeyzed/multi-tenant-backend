@@ -36,6 +36,7 @@ use Spatie\Activitylog\Support\LogOptions;
 #[Fillable([
     'number',
     'supplier_id',
+    'purchase_agreement_id',
     'warehouse_id',
     'status',
     'currency',
@@ -56,7 +57,7 @@ class PurchaseOrder extends Model
     {
         return LogOptions::defaults()
             ->useLogName('tenant')
-            ->logOnly(['number', 'supplier_id', 'warehouse_id', 'status', 'currency', 'subtotal', 'tax', 'total', 'notes'])
+            ->logOnly(['number', 'supplier_id', 'purchase_agreement_id', 'warehouse_id', 'status', 'currency', 'subtotal', 'tax', 'total', 'notes'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
     }
@@ -83,6 +84,14 @@ class PurchaseOrder extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * @return BelongsTo<PurchaseAgreement, $this>
+     */
+    public function purchaseAgreement(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseAgreement::class);
     }
 
     /**

@@ -21,6 +21,7 @@ class StorePurchaseOrderRequest extends FormRequest
     {
         return [
             'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
+            'purchase_agreement_id' => ['nullable', 'integer', 'exists:purchase_agreements,id'],
             'warehouse_id' => ['nullable', 'integer', 'exists:warehouses,id'],
             'currency' => ['nullable', 'string', 'size:3'],
             'tax' => ['sometimes', 'integer', 'min:0'],

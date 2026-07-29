@@ -6,6 +6,7 @@ use App\Http\Controllers\Tenant\ActivityController;
 use App\Http\Controllers\Tenant\ApprovalRequestController;
 use App\Http\Controllers\Tenant\AttributeController;
 use App\Http\Controllers\Tenant\AttributeGroupController;
+use App\Http\Controllers\Tenant\AttributeSetController;
 use App\Http\Controllers\Tenant\AttributeValueController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
@@ -29,6 +30,7 @@ use App\Http\Controllers\Tenant\CustomerTagController;
 use App\Http\Controllers\Tenant\CustomerWalletController;
 use App\Http\Controllers\Tenant\DataJobController;
 use App\Http\Controllers\Tenant\EmployeeController;
+use App\Http\Controllers\Tenant\EstimateController;
 use App\Http\Controllers\Tenant\ExchangeRateController;
 use App\Http\Controllers\Tenant\FulfilmentController;
 use App\Http\Controllers\Tenant\GiftCardController;
@@ -44,10 +46,12 @@ use App\Http\Controllers\Tenant\PriceListController;
 use App\Http\Controllers\Tenant\ProductAttributeController;
 use App\Http\Controllers\Tenant\ProductBundleItemController;
 use App\Http\Controllers\Tenant\ProductController;
+use App\Http\Controllers\Tenant\ProductFamilyController;
 use App\Http\Controllers\Tenant\ProductMediaController;
 use App\Http\Controllers\Tenant\ProductRelationController;
 use App\Http\Controllers\Tenant\ProductVariantController;
 use App\Http\Controllers\Tenant\PromotionController;
+use App\Http\Controllers\Tenant\PurchaseAgreementController;
 use App\Http\Controllers\Tenant\PurchaseOrderController;
 use App\Http\Controllers\Tenant\PurchaseRequestController;
 use App\Http\Controllers\Tenant\QuotationController;
@@ -67,6 +71,7 @@ use App\Http\Controllers\Tenant\StoreConfigController;
 use App\Http\Controllers\Tenant\SupplierAddressController;
 use App\Http\Controllers\Tenant\SupplierContactController;
 use App\Http\Controllers\Tenant\SupplierController;
+use App\Http\Controllers\Tenant\SupplierGroupController;
 use App\Http\Controllers\Tenant\SupplierInvoiceController;
 use App\Http\Controllers\Tenant\SupplierPaymentController;
 use App\Http\Controllers\Tenant\SupplierReturnController;
@@ -205,6 +210,10 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
     Route::apiResource('products', ProductController::class)
         ->middlewareFor('store', 'entitlement:products.max')
         ->names('tenant.products');
+    Route::post('orders/{order}/split', [OrderController::class, 'split'])
+        ->name('tenant.orders.split');
+    Route::post('orders/{order}/mark-backordered', [OrderController::class, 'markBackordered'])
+        ->name('tenant.orders.mark-backordered');
     Route::apiResource('orders', OrderController::class)
         ->middlewareFor('store', 'entitlement:orders.max')
         ->names('tenant.orders');
@@ -228,6 +237,13 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
         Route::apiResource('quotations', QuotationController::class)
             ->names('tenant.quotations');
 
+        Route::post('estimates/{estimate}/send', [EstimateController::class, 'send'])
+            ->name('tenant.estimates.send');
+        Route::post('estimates/{estimate}/convert-to-quotation', [EstimateController::class, 'convertToQuotation'])
+            ->name('tenant.estimates.convert-to-quotation');
+        Route::apiResource('estimates', EstimateController::class)
+            ->names('tenant.estimates');
+
         Route::post('fulfilments/{fulfilment}/complete', [FulfilmentController::class, 'complete'])
             ->name('tenant.fulfilments.complete');
         Route::post('fulfilments/{fulfilment}/cancel', [FulfilmentController::class, 'cancel'])
@@ -242,6 +258,9 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
             ->name('tenant.shipments.deliver');
         Route::post('shipments/{shipment}/cancel', [ShipmentController::class, 'cancel'])
             ->name('tenant.shipments.cancel');
+        Route::post('shipments/{shipment}/packages/{package}/purchase-label', [ShipmentController::class, 'purchaseLabel'])
+            ->scopeBindings()
+            ->name('tenant.shipments.packages.purchase-label');
         Route::apiResource('shipments', ShipmentController::class)
             ->only(['index', 'store', 'show', 'destroy'])
             ->names('tenant.shipments');
@@ -280,6 +299,16 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
 
         Route::apiResource('attributes', AttributeController::class)
             ->names('tenant.attributes');
+
+        Route::apiResource('product-families', ProductFamilyController::class)
+            ->parameters(['product-families' => 'product_family'])
+            ->names('tenant.product-families');
+
+        Route::put('attribute-sets/{attribute_set}/attributes', [AttributeSetController::class, 'syncAttributes'])
+            ->name('tenant.attribute-sets.attributes.sync');
+        Route::apiResource('attribute-sets', AttributeSetController::class)
+            ->parameters(['attribute-sets' => 'attribute_set'])
+            ->names('tenant.attribute-sets');
 
         Route::apiResource('units-of-measure', UnitOfMeasureController::class)
             ->parameters(['units-of-measure' => 'unit_of_measure'])
@@ -332,6 +361,8 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
 
     Route::post('warehouses/{warehouse}/stock', [WarehouseController::class, 'adjustStock'])
         ->name('tenant.warehouses.stock');
+    Route::post('warehouses/{warehouse}/stock/buckets', [WarehouseController::class, 'adjustStockBuckets'])
+        ->name('tenant.warehouses.stock.buckets');
     Route::apiResource('warehouses', WarehouseController::class)
         ->middleware(['feature:features.erp.warehouses'])
         ->middlewareFor('store', 'entitlement:warehouses.max')
@@ -370,6 +401,17 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
     });
 
     Route::middleware(['feature:features.erp.purchasing'])->group(function (): void {
+        Route::apiResource('supplier-groups', SupplierGroupController::class)
+            ->names('tenant.supplier-groups');
+
+        Route::post('purchase-agreements/{purchase_agreement}/activate', [PurchaseAgreementController::class, 'activate'])
+            ->name('tenant.purchase-agreements.activate');
+        Route::post('purchase-agreements/{purchase_agreement}/cancel', [PurchaseAgreementController::class, 'cancel'])
+            ->name('tenant.purchase-agreements.cancel');
+        Route::apiResource('purchase-agreements', PurchaseAgreementController::class)
+            ->parameters(['purchase-agreements' => 'purchase_agreement'])
+            ->names('tenant.purchase-agreements');
+
         Route::post('purchase-orders/{purchase_order}/submit', [PurchaseOrderController::class, 'submit'])
             ->name('tenant.purchase-orders.submit');
         Route::post('purchase-orders/{purchase_order}/approve', [PurchaseOrderController::class, 'approve'])
@@ -613,6 +655,10 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
             ->name('tenant.customers.wallet.credit');
         Route::post('customers/{customer}/wallet/debit', [CustomerWalletController::class, 'debit'])
             ->name('tenant.customers.wallet.debit');
+        Route::post('customers/{customer}/wallet/earn-points', [CustomerWalletController::class, 'earnPoints'])
+            ->name('tenant.customers.wallet.earn-points');
+        Route::post('customers/{customer}/wallet/redeem-points', [CustomerWalletController::class, 'redeemPoints'])
+            ->name('tenant.customers.wallet.redeem-points');
     });
 
     Route::middleware(['feature:features.erp.inventory_advanced'])->group(function (): void {
@@ -674,4 +720,19 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
     Route::get('reports/ap-aging', [ReportController::class, 'apAging'])
         ->middleware('feature:features.erp.reports')
         ->name('tenant.reports.ap-aging');
+    Route::get('reports/ar-aging', [ReportController::class, 'arAging'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.ar-aging');
+    Route::get('reports/customer-summary', [ReportController::class, 'customerSummary'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.customer-summary');
+    Route::get('reports/warehouse-summary', [ReportController::class, 'warehouseSummary'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.warehouse-summary');
+    Route::get('reports/incoming-stock', [ReportController::class, 'incomingStock'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.incoming-stock');
+    Route::get('reports/demand-forecast', [ReportController::class, 'demandForecast'])
+        ->middleware('feature:features.erp.reports')
+        ->name('tenant.reports.demand-forecast');
 });

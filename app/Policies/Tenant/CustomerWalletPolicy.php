@@ -24,4 +24,9 @@ class CustomerWalletPolicy
     {
         return $user->can(Permission::WalletsUpdate->value);
     }
+
+    public function updatePoints(User $user, Customer $customer): bool
+    {
+        return $user->can(Permission::WalletsUpdate->value);
+    }
 }

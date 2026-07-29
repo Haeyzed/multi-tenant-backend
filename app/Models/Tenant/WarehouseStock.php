@@ -18,12 +18,28 @@ use Illuminate\Support\Carbon;
  * @property int $warehouse_id
  * @property int $product_id
  * @property int $quantity
+ * @property int|null $reorder_point
+ * @property int|null $safety_stock
+ * @property int|null $min_stock
+ * @property int|null $max_stock
+ * @property int $damaged_quantity
+ * @property int $on_hold_quantity
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Warehouse $warehouse
  * @property-read Product $product
  */
-#[Fillable(['warehouse_id', 'product_id', 'quantity', 'reorder_point', 'safety_stock', 'min_stock', 'max_stock'])]
+#[Fillable([
+    'warehouse_id',
+    'product_id',
+    'quantity',
+    'reorder_point',
+    'safety_stock',
+    'min_stock',
+    'max_stock',
+    'damaged_quantity',
+    'on_hold_quantity',
+])]
 class WarehouseStock extends Model
 {
     /** @use HasFactory<WarehouseStockFactory> */
@@ -40,6 +56,8 @@ class WarehouseStock extends Model
             'safety_stock' => 'integer',
             'min_stock' => 'integer',
             'max_stock' => 'integer',
+            'damaged_quantity' => 'integer',
+            'on_hold_quantity' => 'integer',
         ];
     }
 

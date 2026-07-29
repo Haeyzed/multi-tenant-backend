@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+        'from' => env('SMS_FROM'),
+    ],
+
+    'push' => [
+        'driver' => env('PUSH_DRIVER', 'null'),
+    ],
+
 ];

@@ -28,6 +28,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int|null $warehouse_id
  * @property int|null $channel_id
  * @property int|null $pos_session_id
+ * @property int|null $parent_order_id
  * @property OrderStatus $status
  * @property string $currency
  * @property int $subtotal
@@ -44,6 +45,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property-read Warehouse|null $warehouse
  * @property-read Channel|null $channel
  * @property-read PosSession|null $posSession
+ * @property-read Order|null $parent
+ * @property-read Collection<int, Order> $children
  * @property-read Collection<int, OrderItem> $items
  * @property-read SalesInvoice|null $salesInvoice
  * @property-read Collection<int, OrderNote> $orderNotes
@@ -57,6 +60,7 @@ use Spatie\Activitylog\Support\LogOptions;
     'warehouse_id',
     'channel_id',
     'pos_session_id',
+    'parent_order_id',
     'status',
     'currency',
     'subtotal',
@@ -75,7 +79,7 @@ class Order extends Model
     {
         return LogOptions::defaults()
             ->useLogName('tenant')
-            ->logOnly(['number', 'customer_id', 'status', 'currency', 'subtotal', 'tax', 'total', 'notes', 'placed_at'])
+            ->logOnly(['number', 'customer_id', 'parent_order_id', 'status', 'currency', 'subtotal', 'tax', 'total', 'notes', 'placed_at'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
     }
@@ -133,6 +137,22 @@ class Order extends Model
     public function posSession(): BelongsTo
     {
         return $this->belongsTo(PosSession::class);
+    }
+
+    /**
+     * @return BelongsTo<Order, $this>
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'parent_order_id');
+    }
+
+    /**
+     * @return HasMany<Order, $this>
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(Order::class, 'parent_order_id');
     }
 
     /**

@@ -26,6 +26,7 @@ class PurchaseOrderResource extends Resource
             'id' => $this->id,
             'number' => $this->number,
             'supplier_id' => $this->supplier_id,
+            'purchase_agreement_id' => $this->purchase_agreement_id,
             'warehouse_id' => $this->warehouse_id,
             'status' => $this->status->value,
             'currency' => $this->currency,

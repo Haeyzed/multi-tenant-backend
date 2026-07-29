@@ -23,6 +23,16 @@ final class NullChannelAdapter implements ChannelAdapter
         return $channel->inventories()->where('is_published', true)->count();
     }
 
+    public function pullOrders(Channel $channel): int
+    {
+        return 0;
+    }
+
+    public function acknowledgeOrder(Channel $channel, string $externalId): void
+    {
+        // Local-only channels do not have external orders to acknowledge.
+    }
+
     public function publishProduct(Channel $channel, Product $product): void
     {
         // Local-only channel — inventory rows are the source of truth.

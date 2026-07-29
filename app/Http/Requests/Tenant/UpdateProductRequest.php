@@ -30,6 +30,8 @@ class UpdateProductRequest extends FormRequest
 
         return [
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'product_family_id' => ['nullable', 'integer', 'exists:product_families,id'],
+            'attribute_set_id' => ['nullable', 'integer', 'exists:attribute_sets,id'],
             'type' => ['sometimes', Rule::enum(ProductType::class)],
             'status' => ['sometimes', Rule::enum(ProductStatus::class)],
             'brand_id' => ['nullable', 'integer', 'exists:brands,id'],
@@ -49,6 +51,10 @@ class UpdateProductRequest extends FormRequest
             'track_inventory' => ['sometimes', 'boolean'],
             'gtin' => ['nullable', 'string', 'max:64'],
             'barcode' => ['nullable', 'string', 'max:64'],
+            'upc' => ['nullable', 'string', 'max:64'],
+            'ean' => ['nullable', 'string', 'max:64'],
+            'isbn' => ['nullable', 'string', 'max:64'],
+            'qr_code' => ['nullable', 'string', 'max:255'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:512'],
             'meta_keywords' => ['nullable', 'string', 'max:512'],

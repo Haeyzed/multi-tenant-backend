@@ -13,13 +13,25 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $shipment_id
  * @property string|null $label
+ * @property string|null $label_provider
+ * @property string|null $label_url
+ * @property array<string, mixed>|null $label_payload
  * @property int|null $weight_grams
  * @property string|null $dimensions
  * @property string|null $tracking_number
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['shipment_id', 'label', 'weight_grams', 'dimensions', 'tracking_number'])]
+#[Fillable([
+    'shipment_id',
+    'label',
+    'label_provider',
+    'label_url',
+    'label_payload',
+    'weight_grams',
+    'dimensions',
+    'tracking_number',
+])]
 class ShipmentPackage extends Model
 {
     /**
@@ -28,6 +40,7 @@ class ShipmentPackage extends Model
     protected function casts(): array
     {
         return [
+            'label_payload' => 'array',
             'weight_grams' => 'integer',
         ];
     }

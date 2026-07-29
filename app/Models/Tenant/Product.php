@@ -74,6 +74,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  */
 #[Fillable([
     'category_id',
+    'product_family_id',
+    'attribute_set_id',
     'type',
     'status',
     'brand_id',
@@ -94,6 +96,10 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'track_inventory',
     'gtin',
     'barcode',
+    'upc',
+    'ean',
+    'isbn',
+    'qr_code',
     'meta_title',
     'meta_description',
     'meta_keywords',
@@ -158,6 +164,22 @@ class Product extends Model implements HasMedia
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * @return BelongsTo<ProductFamily, $this>
+     */
+    public function productFamily(): BelongsTo
+    {
+        return $this->belongsTo(ProductFamily::class);
+    }
+
+    /**
+     * @return BelongsTo<AttributeSet, $this>
+     */
+    public function attributeSet(): BelongsTo
+    {
+        return $this->belongsTo(AttributeSet::class);
     }
 
     /**

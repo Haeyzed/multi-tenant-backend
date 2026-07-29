@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
+use App\Enums\Tenant\PurchaseAgreementStatus;
 use App\Enums\Tenant\PurchaseOrderStatus;
 use App\Events\Tenant\Erp\PurchaseOrderApproved;
 use App\Models\Tenant;
 use App\Models\Tenant\Product;
+use App\Models\Tenant\PurchaseAgreement;
+use App\Models\Tenant\PurchaseAgreementItem;
 use App\Models\Tenant\PurchaseOrder;
 use App\Models\Tenant\Supplier;
 use App\Models\Tenant\SupplierProduct;
@@ -36,6 +39,7 @@ final class PurchaseOrderService
             ->allowedFilters(
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('supplier_id'),
+                AllowedFilter::exact('purchase_agreement_id'),
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('currency'),
@@ -56,6 +60,7 @@ final class PurchaseOrderService
     /**
      * @param  array{
      *     supplier_id: int,
+     *     purchase_agreement_id?: int|null,
      *     warehouse_id?: int|null,
      *     currency?: string|null,
      *     tax?: int,
@@ -70,9 +75,10 @@ final class PurchaseOrderService
     {
         $this->assertSupplier($data['supplier_id']);
         $this->assertWarehouse($data['warehouse_id'] ?? null);
+        $agreementId = $this->assertAgreement($data['purchase_agreement_id'] ?? null, $data['supplier_id']);
 
-        return DB::transaction(function () use ($data): PurchaseOrder {
-            $lines = $this->buildLines($data['items'], $data['supplier_id']);
+        return DB::transaction(function () use ($data, $agreementId): PurchaseOrder {
+            $lines = $this->buildLines($data['items'], $data['supplier_id'], $agreementId);
             $currency = $data['currency'] ?? $lines[0]['currency'] ?? 'USD';
             $subtotal = array_sum(array_column($lines, 'line_total'));
             $tax = $data['tax'] ?? 0;
@@ -81,6 +87,7 @@ final class PurchaseOrderService
             $purchaseOrder = PurchaseOrder::query()->create([
                 'number' => 'PO-'.Str::upper(Str::random(10)),
                 'supplier_id' => $data['supplier_id'],
+                'purchase_agreement_id' => $agreementId,
                 'warehouse_id' => $data['warehouse_id'] ?? null,
                 'status' => PurchaseOrderStatus::Draft,
                 'currency' => strtoupper($currency),
@@ -145,7 +152,7 @@ final class PurchaseOrderService
             }
 
             if (isset($data['items'])) {
-                $lines = $this->buildLines($data['items'], $purchaseOrder->supplier_id);
+                $lines = $this->buildLines($data['items'], $purchaseOrder->supplier_id, $purchaseOrder->purchase_agreement_id);
                 $purchaseOrder->currency = strtoupper($data['currency'] ?? $lines[0]['currency'] ?? $purchaseOrder->currency);
                 $purchaseOrder->items()->delete();
                 $this->syncItems($purchaseOrder, $lines);
@@ -235,7 +242,7 @@ final class PurchaseOrderService
      *     currency: string
      * }>
      */
-    private function buildLines(array $items, int $supplierId): array
+    private function buildLines(array $items, int $supplierId, ?int $agreementId = null): array
     {
         if ($items === []) {
             throw ValidationException::withMessages([
@@ -255,14 +262,32 @@ final class PurchaseOrderService
                 ]);
             }
 
-            if (($item['quantity'] ?? 0) < 1) {
+            $quantity = (int) ($item['quantity'] ?? 0);
+
+            if ($quantity < 1) {
                 throw ValidationException::withMessages([
                     "items.{$index}.quantity" => ['Quantity must be at least 1.'],
                 ]);
             }
 
-            $unitCost = $item['unit_cost'] ?? $this->resolveUnitCost($supplierId, $product->id, $product->unit_price);
-            $quantity = (int) $item['quantity'];
+            $agreementItem = null;
+
+            if ($agreementId !== null) {
+                $agreementItem = PurchaseAgreementItem::query()
+                    ->where('purchase_agreement_id', $agreementId)
+                    ->where('product_id', $product->id)
+                    ->first();
+
+                if ($agreementItem !== null && $quantity < $agreementItem->min_order_qty) {
+                    throw ValidationException::withMessages([
+                        "items.{$index}.quantity" => ["Quantity must be at least {$agreementItem->min_order_qty} per the purchase agreement."],
+                    ]);
+                }
+            }
+
+            $unitCost = $item['unit_cost']
+                ?? ($agreementItem !== null ? (int) $agreementItem->unit_cost : null)
+                ?? $this->resolveUnitCost($supplierId, $product->id, $product->unit_price);
 
             $lines[] = [
                 'product_id' => $product->id,
@@ -290,6 +315,36 @@ final class PurchaseOrderService
         }
 
         return $fallback;
+    }
+
+    private function assertAgreement(?int $agreementId, int $supplierId): ?int
+    {
+        if ($agreementId === null) {
+            return null;
+        }
+
+        /** @var PurchaseAgreement|null $agreement */
+        $agreement = PurchaseAgreement::query()->find($agreementId);
+
+        if ($agreement === null) {
+            throw ValidationException::withMessages([
+                'purchase_agreement_id' => ['The selected purchase agreement is invalid.'],
+            ]);
+        }
+
+        if ($agreement->supplier_id !== $supplierId) {
+            throw ValidationException::withMessages([
+                'purchase_agreement_id' => ['Purchase agreement supplier must match the purchase order supplier.'],
+            ]);
+        }
+
+        if ($agreement->status !== PurchaseAgreementStatus::Active) {
+            throw ValidationException::withMessages([
+                'purchase_agreement_id' => ['Only active purchase agreements can be linked to a purchase order.'],
+            ]);
+        }
+
+        return $agreement->id;
     }
 
     /**

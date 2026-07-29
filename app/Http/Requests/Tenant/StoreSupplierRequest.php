@@ -22,6 +22,7 @@ class StoreSupplierRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'code' => ['sometimes', 'string', 'max:255', 'unique:suppliers,code'],
+            'supplier_group_id' => ['nullable', 'integer', 'exists:supplier_groups,id'],
             'email' => ['nullable', 'string', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],

@@ -32,6 +32,16 @@ enum Permission: string
     case ProductsUpdate = 'products.update';
     case ProductsDelete = 'products.delete';
 
+    case ProductFamiliesView = 'product_families.view';
+    case ProductFamiliesCreate = 'product_families.create';
+    case ProductFamiliesUpdate = 'product_families.update';
+    case ProductFamiliesDelete = 'product_families.delete';
+
+    case AttributeSetsView = 'attribute_sets.view';
+    case AttributeSetsCreate = 'attribute_sets.create';
+    case AttributeSetsUpdate = 'attribute_sets.update';
+    case AttributeSetsDelete = 'attribute_sets.delete';
+
     case OrdersView = 'orders.view';
     case OrdersCreate = 'orders.create';
     case OrdersUpdate = 'orders.update';
@@ -41,6 +51,11 @@ enum Permission: string
     case QuotationsCreate = 'quotations.create';
     case QuotationsUpdate = 'quotations.update';
     case QuotationsDelete = 'quotations.delete';
+
+    case EstimatesView = 'estimates.view';
+    case EstimatesCreate = 'estimates.create';
+    case EstimatesUpdate = 'estimates.update';
+    case EstimatesDelete = 'estimates.delete';
 
     case CreditNotesView = 'credit_notes.view';
     case CreditNotesCreate = 'credit_notes.create';
@@ -112,6 +127,16 @@ enum Permission: string
     case SuppliersCreate = 'suppliers.create';
     case SuppliersUpdate = 'suppliers.update';
     case SuppliersDelete = 'suppliers.delete';
+
+    case SupplierGroupsView = 'supplier_groups.view';
+    case SupplierGroupsCreate = 'supplier_groups.create';
+    case SupplierGroupsUpdate = 'supplier_groups.update';
+    case SupplierGroupsDelete = 'supplier_groups.delete';
+
+    case PurchaseAgreementsView = 'purchase_agreements.view';
+    case PurchaseAgreementsCreate = 'purchase_agreements.create';
+    case PurchaseAgreementsUpdate = 'purchase_agreements.update';
+    case PurchaseAgreementsDelete = 'purchase_agreements.delete';
 
     case SupplierContactsView = 'supplier_contacts.view';
     case SupplierContactsCreate = 'supplier_contacts.create';
@@ -284,8 +309,11 @@ enum Permission: string
             self::CustomersView,
             self::CustomerGroupsView,
             self::ProductsView,
+            self::ProductFamiliesView,
+            self::AttributeSetsView,
             self::OrdersView,
             self::QuotationsView,
+            self::EstimatesView,
             self::CreditNotesView,
             self::InvoicesView,
             self::CategoriesView,
@@ -300,6 +328,8 @@ enum Permission: string
             self::PriceListsView,
             self::PromotionsView,
             self::SuppliersView,
+            self::SupplierGroupsView,
+            self::PurchaseAgreementsView,
             self::SupplierContactsView,
             self::SupplierAddressesView,
             self::PurchaseOrdersView,

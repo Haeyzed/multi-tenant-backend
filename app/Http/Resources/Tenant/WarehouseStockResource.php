@@ -31,6 +31,8 @@ class WarehouseStockResource extends Resource
             'safety_stock' => $this->safety_stock,
             'min_stock' => $this->min_stock,
             'max_stock' => $this->max_stock,
+            'damaged_quantity' => $this->damaged_quantity,
+            'on_hold_quantity' => $this->on_hold_quantity,
             'warehouse' => new WarehouseResource($this->whenLoaded('warehouse')),
             'product' => new ProductResource($this->whenLoaded('product')),
             'created_at' => $this->created_at,

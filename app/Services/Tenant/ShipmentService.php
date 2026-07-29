@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
+use App\Contracts\Tenant\ShippingLabelProvider;
 use App\Enums\Tenant\ShipmentStatus;
 use App\Events\Tenant\Erp\ShipmentCreated;
 use App\Events\Tenant\Erp\ShipmentDelivered;
@@ -29,6 +30,8 @@ use Throwable;
  */
 final class ShipmentService
 {
+    public function __construct(private ShippingLabelProvider $shippingLabelProvider) {}
+
     /**
      * @return LengthAwarePaginator<int, Shipment>
      */
@@ -144,6 +147,21 @@ final class ShipmentService
     public function find(Shipment $shipment): Shipment
     {
         return $shipment->loadMissing(['order', 'fulfilment', 'packages', 'shippingCarrier', 'shippingMethod']);
+    }
+
+    public function purchaseLabel(Shipment $shipment, ShipmentPackage $package): ShipmentPackage
+    {
+        $label = $this->shippingLabelProvider->purchaseLabel($shipment, $package);
+
+        $package->update([
+            'label_provider' => $label->provider,
+            'label' => $label->label,
+            'label_url' => $label->labelUrl,
+            'tracking_number' => $label->trackingNumber,
+            'label_payload' => $label->payload,
+        ]);
+
+        return $package->refresh();
     }
 
     public function dispatch(Shipment $shipment): Shipment

@@ -34,6 +34,25 @@ final class MarketplaceChannelAdapter implements ChannelAdapter
         return $count;
     }
 
+    public function pullOrders(Channel $channel): int
+    {
+        Log::info('marketplace.channel.pull_orders', [
+            'adapter' => $this->adapterKey,
+            'channel_id' => $channel->id,
+        ]);
+
+        return 0;
+    }
+
+    public function acknowledgeOrder(Channel $channel, string $externalId): void
+    {
+        Log::info('marketplace.channel.acknowledge_order', [
+            'adapter' => $this->adapterKey,
+            'channel_id' => $channel->id,
+            'external_id' => $externalId,
+        ]);
+    }
+
     public function publishProduct(Channel $channel, Product $product): void
     {
         Log::info('marketplace.channel.publish_product', [
