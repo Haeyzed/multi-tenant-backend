@@ -57,6 +57,9 @@ final class WarehouseTopologyService
         ]);
     }
 
+    /**
+     * Load the warehouse zone with its bins count and warehouse.
+     */
     public function findZone(WarehouseZone $zone): WarehouseZone
     {
         return $zone->loadCount('bins')->loadMissing('warehouse');
@@ -76,6 +79,9 @@ final class WarehouseTopologyService
         return $zone->refresh();
     }
 
+    /**
+     * Delete a warehouse zone.
+     */
     public function deleteZone(WarehouseZone $zone): void
     {
         $zone->delete();
@@ -126,6 +132,9 @@ final class WarehouseTopologyService
         ]);
     }
 
+    /**
+     * Load the warehouse bin with its related warehouse and zone.
+     */
     public function findBin(WarehouseBin $bin): WarehouseBin
     {
         return $bin->loadMissing(['warehouse', 'zone']);
@@ -149,11 +158,19 @@ final class WarehouseTopologyService
         return $bin->refresh()->loadMissing('zone');
     }
 
+    /**
+     * Delete a warehouse bin.
+     */
     public function deleteBin(WarehouseBin $bin): void
     {
         $bin->delete();
     }
 
+    /**
+     * Ensure the given zone belongs to the expected warehouse, if provided.
+     *
+     * @throws ValidationException if the zone does not belong to the warehouse
+     */
     private function assertZoneBelongsToWarehouse(?int $zoneId, int $warehouseId): void
     {
         if ($zoneId === null) {

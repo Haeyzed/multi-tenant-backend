@@ -18,11 +18,19 @@ use Illuminate\Support\Str;
  */
 final class FakePaymentGateway implements PaymentGateway
 {
+    /**
+     * Identify this driver as the fake billing gateway.
+     */
     public function name(): BillingGateway
     {
         return BillingGateway::Fake;
     }
 
+    /**
+     * Fabricate a subscription result without contacting any external gateway.
+     *
+     * @param  array<string, mixed>  $options
+     */
     public function createSubscription(
         Tenant $tenant,
         PlanPrice $price,
@@ -40,6 +48,9 @@ final class FakePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Fabricate a cancellation result without contacting any external gateway.
+     */
     public function cancelSubscription(Subscription $subscription, bool $atPeriodEnd = true): GatewaySubscriptionResult
     {
         return new GatewaySubscriptionResult(
@@ -49,6 +60,9 @@ final class FakePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Fabricate a resume result without contacting any external gateway.
+     */
     public function resumeSubscription(Subscription $subscription): GatewaySubscriptionResult
     {
         return new GatewaySubscriptionResult(
@@ -57,6 +71,9 @@ final class FakePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Fabricate a plan-change result without contacting any external gateway.
+     */
     public function changePlan(Subscription $subscription, PlanPrice $newPrice): GatewaySubscriptionResult
     {
         return new GatewaySubscriptionResult(
@@ -66,6 +83,10 @@ final class FakePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Verify the `X-Billing-Signature` header against the configured fake webhook secret.
+     * Returns true when no secret is configured.
+     */
     public function verifyWebhookSignature(Request $request): bool
     {
         $secret = (string) config('billing.gateways.fake.webhook_secret', '');
@@ -77,6 +98,9 @@ final class FakePaymentGateway implements PaymentGateway
         return hash_equals($secret, (string) $request->header('X-Billing-Signature', ''));
     }
 
+    /**
+     * @return array{id: string, type: string, payload: array<string, mixed>}
+     */
     public function parseWebhook(Request $request): array
     {
         /** @var array<string, mixed> $payload */

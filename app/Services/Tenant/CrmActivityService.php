@@ -72,6 +72,9 @@ final class CrmActivityService
         ])->load(['user', 'subjectable']);
     }
 
+    /**
+     * Load a single CRM activity with its user and subjectable.
+     */
     public function find(CrmActivity $activity): CrmActivity
     {
         return $activity->loadMissing(['user', 'subjectable']);
@@ -93,11 +96,17 @@ final class CrmActivityService
         return $this->find($activity->refresh());
     }
 
+    /**
+     * Delete a CRM activity.
+     */
     public function delete(CrmActivity $activity): void
     {
         $activity->delete();
     }
 
+    /**
+     * Mark a CRM activity as completed now.
+     */
     public function complete(CrmActivity $activity): CrmActivity
     {
         $activity->update(['completed_at' => now()]);
@@ -105,6 +114,11 @@ final class CrmActivityService
         return $this->find($activity->refresh());
     }
 
+    /**
+     * Ensure the subjectable type is supported and the record exists.
+     *
+     * @throws ValidationException
+     */
     private function assertSubjectable(string $type, int $id): void
     {
         $modelClass = $this->normalizeType($type);
@@ -122,6 +136,9 @@ final class CrmActivityService
         }
     }
 
+    /**
+     * Normalize a short subjectable type alias to its fully-qualified model class.
+     */
     private function normalizeType(string $type): string
     {
         return match (strtolower($type)) {

@@ -53,6 +53,9 @@ final class ShippingCarrierService
         ]);
     }
 
+    /**
+     * Load the shipping carrier with its methods count.
+     */
     public function find(ShippingCarrier $carrier): ShippingCarrier
     {
         return $carrier->loadCount('methods');
@@ -68,6 +71,9 @@ final class ShippingCarrierService
         return $carrier->refresh();
     }
 
+    /**
+     * Delete a shipping carrier.
+     */
     public function delete(ShippingCarrier $carrier): void
     {
         $carrier->delete();

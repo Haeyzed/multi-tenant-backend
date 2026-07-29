@@ -11,6 +11,9 @@ use App\Models\Tenant\ShipmentPackage;
 
 final class NullShippingLabelProvider implements ShippingLabelProvider
 {
+    /**
+     * No-op label purchase; returns the package's existing (unset) label data unchanged.
+     */
     public function purchaseLabel(Shipment $shipment, ShipmentPackage $package): ShippingLabelResult
     {
         return new ShippingLabelResult(

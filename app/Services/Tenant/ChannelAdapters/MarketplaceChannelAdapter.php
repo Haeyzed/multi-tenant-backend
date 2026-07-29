@@ -16,11 +16,17 @@ final class MarketplaceChannelAdapter implements ChannelAdapter
 {
     public function __construct(private string $adapterKey) {}
 
+    /**
+     * The adapter key identifying this generic marketplace integration.
+     */
     public function key(): string
     {
         return $this->adapterKey;
     }
 
+    /**
+     * Log a stub inventory sync for published channel inventory rows.
+     */
     public function syncInventory(Channel $channel): int
     {
         $count = $channel->inventories()->where('is_published', true)->count();
@@ -34,6 +40,9 @@ final class MarketplaceChannelAdapter implements ChannelAdapter
         return $count;
     }
 
+    /**
+     * Log a stub order pull; the generic adapter has no orders to retrieve.
+     */
     public function pullOrders(Channel $channel): int
     {
         Log::info('marketplace.channel.pull_orders', [
@@ -44,6 +53,9 @@ final class MarketplaceChannelAdapter implements ChannelAdapter
         return 0;
     }
 
+    /**
+     * Log a stub order acknowledgement.
+     */
     public function acknowledgeOrder(Channel $channel, string $externalId): void
     {
         Log::info('marketplace.channel.acknowledge_order', [
@@ -53,6 +65,9 @@ final class MarketplaceChannelAdapter implements ChannelAdapter
         ]);
     }
 
+    /**
+     * Log a stub product publish.
+     */
     public function publishProduct(Channel $channel, Product $product): void
     {
         Log::info('marketplace.channel.publish_product', [

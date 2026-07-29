@@ -94,6 +94,9 @@ final class PurchaseAgreementService
         });
     }
 
+    /**
+     * Load a purchase agreement with its supplier and item/product relations.
+     */
     public function find(PurchaseAgreement $agreement): PurchaseAgreement
     {
         return $agreement->loadMissing(['supplier', 'items.product']);
@@ -161,6 +164,11 @@ final class PurchaseAgreementService
         });
     }
 
+    /**
+     * Delete a purchase agreement, provided it is not currently active.
+     *
+     * @throws ValidationException if the agreement is active
+     */
     public function delete(PurchaseAgreement $agreement): void
     {
         if ($agreement->status === PurchaseAgreementStatus::Active) {
@@ -173,6 +181,9 @@ final class PurchaseAgreementService
     }
 
     /**
+     * Activate a draft or expired purchase agreement that has at least one item.
+     *
+     * @throws ValidationException if the agreement is not draft/expired or has no items
      * @throws Throwable
      */
     public function activate(PurchaseAgreement $agreement): PurchaseAgreement
@@ -200,6 +211,9 @@ final class PurchaseAgreementService
     }
 
     /**
+     * Cancel a purchase agreement that is not already cancelled.
+     *
+     * @throws ValidationException if the agreement is already cancelled
      * @throws Throwable
      */
     public function cancel(PurchaseAgreement $agreement): PurchaseAgreement
@@ -218,6 +232,8 @@ final class PurchaseAgreementService
     }
 
     /**
+     * Replace a purchase agreement's items with the given item list.
+     *
      * @param  list<array{
      *     product_id: int,
      *     unit_cost: int,
@@ -225,6 +241,8 @@ final class PurchaseAgreementService
      *     min_order_qty?: int,
      *     lead_time_days?: int|null
      * }>  $items
+     *
+     * @throws ValidationException if the item list is empty
      */
     private function syncItems(PurchaseAgreement $agreement, array $items): void
     {

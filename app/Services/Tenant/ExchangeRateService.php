@@ -114,6 +114,12 @@ final class ExchangeRateService
         return $exchangeRate->refresh();
     }
 
+    /**
+     * Convert an amount (in minor units) from one currency to another using the
+     * most recent applicable exchange rate.
+     *
+     * @throws ValidationException if no exchange rate is found for the currency pair
+     */
     public function convert(int $amount, string $from, string $to, ?Carbon $at = null): int
     {
         $from = strtoupper($from);
@@ -134,6 +140,9 @@ final class ExchangeRateService
         return (int) round($amount * (float) $rate->rate);
     }
 
+    /**
+     * Find the most recent exchange rate for a currency pair effective at or before the given time.
+     */
     private function findRate(string $from, string $to, Carbon $at): ?ExchangeRate
     {
         return ExchangeRate::query()

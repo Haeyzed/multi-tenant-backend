@@ -60,6 +60,9 @@ final class SupplierPaymentService
             ->appends(request()->query());
     }
 
+    /**
+     * Load the supplier payment with its related supplier, allocations, and creator.
+     */
     public function find(SupplierPayment $payment): SupplierPayment
     {
         return $payment->loadMissing(['supplier', 'allocations.invoice', 'creator']);
@@ -185,6 +188,11 @@ final class SupplierPaymentService
         });
     }
 
+    /**
+     * Delete a supplier payment that has not been completed.
+     *
+     * @throws ValidationException if the payment is completed
+     */
     public function delete(SupplierPayment $payment): void
     {
         if ($payment->status === SupplierPaymentStatus::Completed) {
@@ -274,6 +282,9 @@ final class SupplierPaymentService
         }
     }
 
+    /**
+     * Dispatch the payment recorded event for a completed supplier payment.
+     */
     private function dispatchPaymentRecorded(SupplierPayment $payment): void
     {
         /** @var Tenant $tenant */

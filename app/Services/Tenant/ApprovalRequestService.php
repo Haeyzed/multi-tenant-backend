@@ -85,21 +85,35 @@ final class ApprovalRequestService
         ])->load(['requester', 'approvable']);
     }
 
+    /**
+     * Load a single approval request with its requester, decider, and approvable.
+     */
     public function find(ApprovalRequest $approvalRequest): ApprovalRequest
     {
         return $approvalRequest->loadMissing(['requester', 'decider', 'approvable']);
     }
 
+    /**
+     * Approve a pending approval request.
+     */
     public function approve(ApprovalRequest $approvalRequest, ?string $decisionNotes = null): ApprovalRequest
     {
         return $this->decide($approvalRequest, ApprovalRequestStatus::Approved, $decisionNotes);
     }
 
+    /**
+     * Reject a pending approval request.
+     */
     public function reject(ApprovalRequest $approvalRequest, ?string $decisionNotes = null): ApprovalRequest
     {
         return $this->decide($approvalRequest, ApprovalRequestStatus::Rejected, $decisionNotes);
     }
 
+    /**
+     * Cancel a pending approval request without an approve/reject decision.
+     *
+     * @throws ValidationException
+     */
     public function cancel(ApprovalRequest $approvalRequest): ApprovalRequest
     {
         $this->assertPending($approvalRequest);
@@ -113,12 +127,22 @@ final class ApprovalRequestService
         return $this->find($approvalRequest->refresh());
     }
 
+    /**
+     * Delete a pending approval request.
+     *
+     * @throws ValidationException
+     */
     public function delete(ApprovalRequest $approvalRequest): void
     {
         $this->assertPending($approvalRequest);
         $approvalRequest->delete();
     }
 
+    /**
+     * Record an approve/reject decision, dispatching the decided event.
+     *
+     * @throws ValidationException
+     */
     private function decide(
         ApprovalRequest $approvalRequest,
         ApprovalRequestStatus $status,
@@ -143,6 +167,11 @@ final class ApprovalRequestService
         return $approvalRequest;
     }
 
+    /**
+     * Ensure the approval request is still pending a decision.
+     *
+     * @throws ValidationException
+     */
     private function assertPending(ApprovalRequest $approvalRequest): void
     {
         if ($approvalRequest->status !== ApprovalRequestStatus::Pending) {
@@ -152,6 +181,11 @@ final class ApprovalRequestService
         }
     }
 
+    /**
+     * Ensure the approvable type is supported and the record exists.
+     *
+     * @throws ValidationException
+     */
     private function assertApprovable(string $type, int $id): void
     {
         if (! class_exists($type) || ! is_subclass_of($type, Model::class)) {
@@ -167,6 +201,9 @@ final class ApprovalRequestService
         }
     }
 
+    /**
+     * Normalize a short approvable type alias to its fully-qualified model class.
+     */
     private function normalizeType(string $type): string
     {
         return match (strtolower($type)) {

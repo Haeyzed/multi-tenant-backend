@@ -53,6 +53,9 @@ final class ProductRelationService
         ])->load('relatedProduct');
     }
 
+    /**
+     * Load a product relation with its related product.
+     */
     public function find(ProductRelation $relation): ProductRelation
     {
         return $relation->load('relatedProduct');
@@ -68,6 +71,9 @@ final class ProductRelationService
         return $relation->refresh()->load('relatedProduct');
     }
 
+    /**
+     * Delete a product relation.
+     */
     public function delete(ProductRelation $relation): void
     {
         $relation->delete();

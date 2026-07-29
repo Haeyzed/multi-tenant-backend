@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Tenant;
 
 use App\Events\Tenant\Erp\CustomerCreated;
+use App\Exceptions\EntitlementLimitExceededException;
 use App\Models\Central\Tenant;
 use App\Models\Tenant\Customer;
 use App\Models\Tenant\CustomerGroup;
@@ -57,7 +58,7 @@ final class CustomerService
     }
 
     /**
-     * @param  array{
+     * @param array{
      *     name: string,
      *     code?: string|null,
      *     customer_group_id?: int|null,
@@ -71,7 +72,8 @@ final class CustomerService
      *     notes?: string|null,
      *     is_active?: bool,
      *     tag_ids?: list<int>
-     * }  $data
+     * } $data
+     * @throws EntitlementLimitExceededException
      */
     public function create(array $data): Customer
     {
@@ -106,6 +108,9 @@ final class CustomerService
         return $customer->load(['group', 'tags']);
     }
 
+    /**
+     * Load a single customer with related counts and its group, tags, addresses, and contacts.
+     */
     public function find(Customer $customer): Customer
     {
         return $customer->loadCount(['orders', 'addresses', 'contacts', 'crmNotes'])
@@ -155,11 +160,19 @@ final class CustomerService
         return $customer->refresh()->load(['group', 'tags']);
     }
 
+    /**
+     * Delete a customer.
+     */
     public function delete(Customer $customer): void
     {
         $customer->delete();
     }
 
+    /**
+     * Ensure the given customer group id, if provided, exists.
+     *
+     * @throws ValidationException
+     */
     private function assertGroup(?int $groupId): void
     {
         if ($groupId === null) {
@@ -173,6 +186,9 @@ final class CustomerService
         }
     }
 
+    /**
+     * Generate a random unique-looking customer code.
+     */
     private function generateCode(): string
     {
         return 'CUS-'.Str::upper(Str::random(8));

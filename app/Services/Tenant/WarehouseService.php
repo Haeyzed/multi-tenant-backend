@@ -83,6 +83,9 @@ final class WarehouseService
         return $warehouse;
     }
 
+    /**
+     * Load the warehouse with its stocks, zones, and bins counts, plus branch and manager.
+     */
     public function find(Warehouse $warehouse): Warehouse
     {
         return $warehouse->loadCount(['stocks', 'zones', 'bins'])->loadMissing(['branch', 'manager']);
@@ -106,6 +109,9 @@ final class WarehouseService
         return $warehouse->refresh();
     }
 
+    /**
+     * Delete a warehouse.
+     */
     public function delete(Warehouse $warehouse): void
     {
         $warehouse->delete();
@@ -261,6 +267,9 @@ final class WarehouseService
             ->appends(request()->query());
     }
 
+    /**
+     * Unset the default flag on all other warehouses.
+     */
     private function unsetOtherDefaults(Warehouse $warehouse): void
     {
         Warehouse::query()

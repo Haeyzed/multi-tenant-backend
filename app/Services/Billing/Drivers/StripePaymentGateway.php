@@ -22,11 +22,21 @@ use RuntimeException;
  */
 final class StripePaymentGateway implements PaymentGateway
 {
+    /**
+     * Identify this driver as the Stripe billing gateway.
+     */
     public function name(): BillingGateway
     {
         return BillingGateway::Stripe;
     }
 
+    /**
+     * Create (or reuse) a Stripe customer and subscribe them to the given price.
+     *
+     * @param  array<string, mixed>  $options
+     *
+     * @throws RuntimeException if the price has no Stripe price id, if not configured, or if the request fails
+     */
     public function createSubscription(
         Tenant $tenant,
         PlanPrice $price,
@@ -59,6 +69,9 @@ final class StripePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * @throws RuntimeException if not configured or if the request fails
+     */
     public function cancelSubscription(Subscription $subscription, bool $atPeriodEnd = true): GatewaySubscriptionResult
     {
         $this->ensureConfigured();
@@ -76,6 +89,9 @@ final class StripePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * @throws RuntimeException if not configured or if the request fails
+     */
     public function resumeSubscription(Subscription $subscription): GatewaySubscriptionResult
     {
         $this->ensureConfigured();
@@ -92,6 +108,11 @@ final class StripePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Swap the subscription's existing item to the given price, prorating charges.
+     *
+     * @throws RuntimeException if the new price has no Stripe price id, if not configured, or if a request fails
+     */
     public function changePlan(Subscription $subscription, PlanPrice $newPrice): GatewaySubscriptionResult
     {
         $this->ensureConfigured();
@@ -116,6 +137,11 @@ final class StripePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Verify the `Stripe-Signature` header's `v1` signature(s) against an HMAC-SHA256 of the
+     * timestamped request body. Returns true only in non-production environments when no
+     * webhook secret is configured.
+     */
     public function verifyWebhookSignature(Request $request): bool
     {
         $secret = (string) config('billing.gateways.stripe.webhook_secret', '');
@@ -156,6 +182,9 @@ final class StripePaymentGateway implements PaymentGateway
         return false;
     }
 
+    /**
+     * @return array{id: string, type: string, payload: array<string, mixed>}
+     */
     public function parseWebhook(Request $request): array
     {
         /** @var array<string, mixed> $payload */
@@ -168,6 +197,9 @@ final class StripePaymentGateway implements PaymentGateway
         ];
     }
 
+    /**
+     * @throws RuntimeException if the Stripe secret key is not configured
+     */
     private function ensureConfigured(): void
     {
         if ((string) config('billing.gateways.stripe.secret', '') === '') {

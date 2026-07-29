@@ -106,11 +106,19 @@ final class GiftCardService
         return $this->find($giftCard);
     }
 
+    /**
+     * Load a gift card with its customer, creator, and redemption relations.
+     */
     public function find(GiftCard $giftCard): GiftCard
     {
         return $giftCard->loadMissing(['customer', 'creator', 'redemptions']);
     }
 
+    /**
+     * Look up a gift card by code and verify it is currently redeemable.
+     *
+     * @throws ValidationException if the code does not exist or is not redeemable
+     */
     public function checkBalance(string $code): GiftCard
     {
         /** @var GiftCard|null $giftCard */
@@ -184,6 +192,11 @@ final class GiftCardService
         });
     }
 
+    /**
+     * Void a gift card, preventing further redemption.
+     *
+     * @throws ValidationException if the gift card is already void or fully redeemed
+     */
     public function void(GiftCard $giftCard): GiftCard
     {
         if ($giftCard->status === GiftCardStatus::Void) {
@@ -203,6 +216,11 @@ final class GiftCardService
         return $this->find($giftCard->refresh());
     }
 
+    /**
+     * Delete a gift card, provided it has no redemption history.
+     *
+     * @throws ValidationException if the gift card has redemptions
+     */
     public function delete(GiftCard $giftCard): void
     {
         if ($giftCard->redemptions()->exists()) {
@@ -214,6 +232,12 @@ final class GiftCardService
         $giftCard->delete();
     }
 
+    /**
+     * Ensure a gift card is active, unexpired, and has a remaining balance,
+     * marking it expired as a side effect when its expiry date has passed.
+     *
+     * @throws ValidationException if the gift card is void, expired, or has no balance
+     */
     private function assertRedeemable(GiftCard $giftCard): void
     {
         if ($giftCard->status === GiftCardStatus::Void) {
@@ -247,6 +271,9 @@ final class GiftCardService
         }
     }
 
+    /**
+     * Generate a unique gift card code.
+     */
     private function generateCode(): string
     {
         do {

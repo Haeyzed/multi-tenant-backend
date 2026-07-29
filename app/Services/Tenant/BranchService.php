@@ -59,6 +59,9 @@ final class BranchService
         return $branch;
     }
 
+    /**
+     * Load a single branch with its warehouse count.
+     */
     public function find(Branch $branch): Branch
     {
         return $branch->loadCount('warehouses');
@@ -82,11 +85,17 @@ final class BranchService
         return $branch->refresh();
     }
 
+    /**
+     * Delete a branch.
+     */
     public function delete(Branch $branch): void
     {
         $branch->delete();
     }
 
+    /**
+     * Clear the default flag on every other branch.
+     */
     private function unsetOtherDefaults(Branch $branch): void
     {
         Branch::query()

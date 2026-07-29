@@ -35,6 +35,9 @@ final class ProductFamilyService
         ]);
     }
 
+    /**
+     * Load a product family with its product and attribute set counts.
+     */
     public function find(ProductFamily $productFamily): ProductFamily
     {
         return $productFamily->loadCount(['products', 'attributeSets']);
@@ -48,6 +51,9 @@ final class ProductFamilyService
         return $productFamily->refresh();
     }
 
+    /**
+     * Delete a product family.
+     */
     public function delete(ProductFamily $productFamily): void
     {
         $productFamily->delete();

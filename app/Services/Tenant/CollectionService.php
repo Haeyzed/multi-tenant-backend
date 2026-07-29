@@ -76,6 +76,9 @@ final class CollectionService
         return $collection->refresh()->load(['rules', 'products']);
     }
 
+    /**
+     * Load a single collection with its rules, products, and product count.
+     */
     public function find(Collection $collection): Collection
     {
         return $collection->load(['rules', 'products'])->loadCount('products');
@@ -102,6 +105,9 @@ final class CollectionService
         return $collection->refresh()->load(['rules', 'products']);
     }
 
+    /**
+     * Delete a collection.
+     */
     public function delete(Collection $collection): void
     {
         $collection->delete();
@@ -160,6 +166,9 @@ final class CollectionService
         return $collection->refresh()->load('products');
     }
 
+    /**
+     * Recompute a smart collection's product membership from its rules.
+     */
     public function syncSmartRules(Collection $collection): Collection
     {
         if ($collection->type !== CollectionType::Smart) {

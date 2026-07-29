@@ -11,6 +11,9 @@ use App\Models\Tenant\ShipmentPackage;
 
 final class ManualShippingLabelProvider implements ShippingLabelProvider
 {
+    /**
+     * Build a label result from data already recorded manually on the package.
+     */
     public function purchaseLabel(Shipment $shipment, ShipmentPackage $package): ShippingLabelResult
     {
         return new ShippingLabelResult(

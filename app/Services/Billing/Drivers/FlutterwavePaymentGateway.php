@@ -23,11 +23,21 @@ use RuntimeException;
  */
 final class FlutterwavePaymentGateway implements PaymentGateway
 {
+    /**
+     * Identify this driver as the Flutterwave billing gateway.
+     */
     public function name(): BillingGateway
     {
         return BillingGateway::Flutterwave;
     }
 
+    /**
+     * Create (or reuse) a Flutterwave customer and subscribe them to the given payment plan.
+     *
+     * @param  array<string, mixed>  $options
+     *
+     * @throws RuntimeException if the price has no Flutterwave payment plan id, if not configured, or if the request fails
+     */
     public function createSubscription(
         Tenant $tenant,
         PlanPrice $price,
@@ -72,6 +82,9 @@ final class FlutterwavePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * @throws RuntimeException if not configured or if the request fails
+     */
     public function cancelSubscription(Subscription $subscription, bool $atPeriodEnd = true): GatewaySubscriptionResult
     {
         $this->ensureConfigured();
@@ -89,6 +102,9 @@ final class FlutterwavePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * @throws RuntimeException if not configured or if the request fails
+     */
     public function resumeSubscription(Subscription $subscription): GatewaySubscriptionResult
     {
         $this->ensureConfigured();
@@ -105,6 +121,11 @@ final class FlutterwavePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Cancel the current Flutterwave subscription and create a new one on the given plan.
+     *
+     * @throws RuntimeException if the new price has no Flutterwave payment plan id, if not configured, or if a request fails
+     */
     public function changePlan(Subscription $subscription, PlanPrice $newPrice): GatewaySubscriptionResult
     {
         $this->ensureConfigured();
@@ -137,6 +158,10 @@ final class FlutterwavePaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Verify the `verif-hash` header against the configured Flutterwave secret hash.
+     * Returns true only in non-production environments when no secret hash is configured.
+     */
     public function verifyWebhookSignature(Request $request): bool
     {
         $secret = (string) config('billing.gateways.flutterwave.secret_hash', '');
@@ -148,6 +173,9 @@ final class FlutterwavePaymentGateway implements PaymentGateway
         return hash_equals($secret, (string) $request->header('verif-hash', ''));
     }
 
+    /**
+     * @return array{id: string, type: string, payload: array<string, mixed>}
+     */
     public function parseWebhook(Request $request): array
     {
         /** @var array<string, mixed> $payload */
@@ -174,6 +202,9 @@ final class FlutterwavePaymentGateway implements PaymentGateway
         return 'tenant+'.$tenant->getTenantKey().'@billing.local';
     }
 
+    /**
+     * @throws RuntimeException if the Flutterwave secret key is not configured
+     */
     private function ensureConfigured(): void
     {
         if ((string) config('billing.gateways.flutterwave.secret', '') === '') {

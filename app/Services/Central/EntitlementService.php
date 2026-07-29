@@ -15,6 +15,10 @@ use App\Models\Central\Tenant;
  */
 final class EntitlementService
 {
+    /**
+     * Resolve the tenant's plan, current entitling subscription, and feature values.
+     * Returns an empty entitlements object when there is no entitling subscription.
+     */
     public function forTenant(Tenant $tenant): Entitlements
     {
         /** @var Subscription|null $subscription */
@@ -38,6 +42,9 @@ final class EntitlementService
         return new Entitlements($subscription, $plan, $features);
     }
 
+    /**
+     * Resolve the tenant's current entitling subscription, if any, with its billing relations loaded.
+     */
     public function currentSubscription(Tenant $tenant): ?Subscription
     {
         return $tenant->subscriptions()

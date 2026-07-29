@@ -13,6 +13,7 @@ use App\Models\Tenant\Product;
 use App\Models\Tenant\Quotation;
 use App\Models\Tenant\Tax;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -123,6 +124,9 @@ final class QuotationService
         });
     }
 
+    /**
+     * Load the quotation with its related customer, items, tax rate, and converted order.
+     */
     public function find(Quotation $quotation): Quotation
     {
         return $quotation->loadMissing(['customer', 'items.product', 'taxRate', 'convertedOrder']);
@@ -204,12 +208,22 @@ final class QuotationService
         });
     }
 
+    /**
+     * Delete a draft quotation.
+     *
+     * @throws ValidationException if the quotation is not in draft status
+     */
     public function delete(Quotation $quotation): void
     {
         $this->assertStatus($quotation, QuotationStatus::Draft);
         $quotation->delete();
     }
 
+    /**
+     * Send a draft quotation to the customer.
+     *
+     * @throws ValidationException if the quotation is not draft or has no items
+     */
     public function send(Quotation $quotation): Quotation
     {
         $this->assertStatus($quotation, QuotationStatus::Draft);
@@ -285,6 +299,11 @@ final class QuotationService
         });
     }
 
+    /**
+     * Reject a sent quotation.
+     *
+     * @throws ValidationException if the quotation is not in sent status
+     */
     public function reject(Quotation $quotation): Quotation
     {
         $this->assertStatus($quotation, QuotationStatus::Sent);
@@ -297,6 +316,11 @@ final class QuotationService
         return $this->find($quotation->refresh());
     }
 
+    /**
+     * Resolve the active tax rate by id, or fall back to the default active tax rate.
+     *
+     * @throws ModelNotFoundException if the given tax id does not resolve to an active tax
+     */
     private function resolveTax(?int $taxId): ?Tax
     {
         if ($taxId !== null) {
@@ -360,6 +384,11 @@ final class QuotationService
         return $lines;
     }
 
+    /**
+     * Ensure the quotation is in the expected status.
+     *
+     * @throws ValidationException if the quotation status does not match
+     */
     private function assertStatus(Quotation $quotation, QuotationStatus $expected): void
     {
         if ($quotation->status !== $expected) {

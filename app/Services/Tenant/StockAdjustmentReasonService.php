@@ -52,6 +52,9 @@ final class StockAdjustmentReasonService
         ]);
     }
 
+    /**
+     * Return the stock adjustment reason unmodified.
+     */
     public function find(StockAdjustmentReason $reason): StockAdjustmentReason
     {
         return $reason;
@@ -71,6 +74,9 @@ final class StockAdjustmentReasonService
         return $reason->refresh();
     }
 
+    /**
+     * Delete a stock adjustment reason.
+     */
     public function delete(StockAdjustmentReason $reason): void
     {
         $reason->delete();

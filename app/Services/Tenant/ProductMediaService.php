@@ -62,6 +62,9 @@ final class ProductMediaService
         ]);
     }
 
+    /**
+     * Retrieve a single product media record.
+     */
     public function find(ProductMedia $media): ProductMedia
     {
         return $media;
@@ -84,11 +87,17 @@ final class ProductMediaService
         return $media->refresh();
     }
 
+    /**
+     * Delete a product media record.
+     */
     public function delete(ProductMedia $media): void
     {
         $media->delete();
     }
 
+    /**
+     * Upload a file into a product's Spatie media collection.
+     */
     public function upload(Product $product, UploadedFile $file, string $collection = 'gallery'): Media
     {
         return $product->addMedia($file)->toMediaCollection($collection);

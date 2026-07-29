@@ -68,6 +68,9 @@ final class UserService
         });
     }
 
+    /**
+     * Resolve the given user with their roles loaded.
+     */
     public function find(User $user): User
     {
         return $user->loadMissing('roles');
@@ -103,6 +106,11 @@ final class UserService
         });
     }
 
+    /**
+     * Permanently remove the given user.
+     *
+     * @throws ValidationException if the actor is attempting to delete their own account
+     */
     public function delete(User $user, ?User $actor = null): void
     {
         if ($actor !== null && $actor->is($user)) {

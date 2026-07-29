@@ -13,6 +13,9 @@ final class FeatureFlagService
 {
     public function __construct(private PlatformSettingService $settings) {}
 
+    /**
+     * Resolve whether the given feature flag is enabled from platform settings.
+     */
     public function enabled(FeatureFlagKey|string $flag, bool $default = true): bool
     {
         $key = $flag instanceof FeatureFlagKey ? $flag->value : $flag;
@@ -39,6 +42,9 @@ final class FeatureFlagService
         return $flags;
     }
 
+    /**
+     * Persist the feature flag's enabled state (and optional description) to platform settings.
+     */
     public function set(FeatureFlagKey|string $flag, bool $enabled, ?string $description = null): bool
     {
         $key = $flag instanceof FeatureFlagKey ? $flag->value : $flag;

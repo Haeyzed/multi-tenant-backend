@@ -60,6 +60,9 @@ final class SalesPaymentService
             ->appends(request()->query());
     }
 
+    /**
+     * Load the sales payment with its related customer, allocations, and creator.
+     */
     public function find(SalesPayment $payment): SalesPayment
     {
         return $payment->loadMissing(['customer', 'allocations.invoice', 'creator']);
@@ -185,6 +188,11 @@ final class SalesPaymentService
         });
     }
 
+    /**
+     * Delete a sales payment that has not been completed.
+     *
+     * @throws ValidationException if the payment is completed
+     */
     public function delete(SalesPayment $payment): void
     {
         if ($payment->status === SalesPaymentStatus::Completed) {
@@ -268,6 +276,9 @@ final class SalesPaymentService
         }
     }
 
+    /**
+     * Dispatch the payment recorded event for a completed sales payment.
+     */
     private function dispatchPaymentRecorded(SalesPayment $payment): void
     {
         /** @var Tenant $tenant */

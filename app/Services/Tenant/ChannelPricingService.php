@@ -63,11 +63,17 @@ final class ChannelPricingService
         return $price->load('product');
     }
 
+    /**
+     * Delete a channel product price override.
+     */
     public function delete(ChannelProductPrice $price): void
     {
         $price->delete();
     }
 
+    /**
+     * Resolve the best-matching channel unit price for a quantity break, if any.
+     */
     public function resolveUnitPrice(int $channelId, int $productId, int $quantity, string $currency): ?int
     {
         $price = ChannelProductPrice::query()

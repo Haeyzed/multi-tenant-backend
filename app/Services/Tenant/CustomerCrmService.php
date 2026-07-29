@@ -104,6 +104,9 @@ final class CustomerCrmService
         });
     }
 
+    /**
+     * Delete a customer address.
+     */
     public function deleteAddress(Customer $customer, CustomerAddress $address): void
     {
         $this->assertBelongsToCustomer($address->customer_id, $customer->id);
@@ -179,6 +182,9 @@ final class CustomerCrmService
         });
     }
 
+    /**
+     * Delete a customer contact.
+     */
     public function deleteContact(Customer $customer, CustomerContact $contact): void
     {
         $this->assertBelongsToCustomer($contact->customer_id, $customer->id);
@@ -232,6 +238,9 @@ final class CustomerCrmService
         return $note->refresh()->load('author');
     }
 
+    /**
+     * Delete a customer note.
+     */
     public function deleteNote(Customer $customer, CustomerNote $note): void
     {
         $this->assertBelongsToCustomer($note->customer_id, $customer->id);
@@ -286,6 +295,9 @@ final class CustomerCrmService
         return $tag->refresh();
     }
 
+    /**
+     * Delete a customer tag.
+     */
     public function deleteTag(CustomerTag $tag): void
     {
         $tag->delete();
@@ -309,6 +321,9 @@ final class CustomerCrmService
         return $customer->load('tags');
     }
 
+    /**
+     * Clear the default flag on every other address of the same type for this customer.
+     */
     private function unsetOtherDefaultAddresses(Customer $customer, CustomerAddress $address): void
     {
         CustomerAddress::query()
@@ -319,6 +334,9 @@ final class CustomerCrmService
             ->update(['is_default' => false]);
     }
 
+    /**
+     * Clear the primary flag on every other contact for this customer.
+     */
     private function unsetOtherPrimaryContacts(Customer $customer, CustomerContact $contact): void
     {
         CustomerContact::query()
@@ -328,6 +346,9 @@ final class CustomerCrmService
             ->update(['is_primary' => false]);
     }
 
+    /**
+     * Ensure a nested CRM resource belongs to the given customer.
+     */
     private function assertBelongsToCustomer(int $ownerId, int $customerId): void
     {
         if ($ownerId !== $customerId) {

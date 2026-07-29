@@ -41,6 +41,9 @@ final class StockSerialService
             ->appends(request()->query());
     }
 
+    /**
+     * Load the stock serial with its related warehouse, product, stock lot, and ledger entry.
+     */
     public function find(StockSerial $stockSerial): StockSerial
     {
         return $stockSerial->load(['warehouse', 'product', 'stockLot', 'ledgerEntry']);

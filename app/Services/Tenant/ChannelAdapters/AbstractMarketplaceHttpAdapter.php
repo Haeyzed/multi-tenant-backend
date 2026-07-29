@@ -16,6 +16,8 @@ use RuntimeException;
 abstract class AbstractMarketplaceHttpAdapter
 {
     /**
+     * Read the channel's raw config array as its OAuth/credential store.
+     *
      * @return array<string, mixed>
      */
     protected function credentials(Channel $channel): array
@@ -23,6 +25,9 @@ abstract class AbstractMarketplaceHttpAdapter
         return is_array($channel->config) ? $channel->config : [];
     }
 
+    /**
+     * Read the channel's OAuth client id, if configured.
+     */
     protected function clientId(Channel $channel): ?string
     {
         $value = $this->credentials($channel)['client_id'] ?? null;
@@ -30,6 +35,9 @@ abstract class AbstractMarketplaceHttpAdapter
         return is_string($value) && $value !== '' ? $value : null;
     }
 
+    /**
+     * Read and decrypt the channel's OAuth client secret, if configured.
+     */
     protected function clientSecret(Channel $channel): ?string
     {
         $value = $this->credentials($channel)['client_secret'] ?? null;
@@ -45,6 +53,9 @@ abstract class AbstractMarketplaceHttpAdapter
         }
     }
 
+    /**
+     * Read the channel's current access token, or null if missing/expired.
+     */
     protected function accessToken(Channel $channel): ?string
     {
         $creds = $this->credentials($channel);
@@ -64,6 +75,8 @@ abstract class AbstractMarketplaceHttpAdapter
     }
 
     /**
+     * Persist an OAuth token response onto the channel's config.
+     *
      * @param  array<string, mixed>  $tokenResponse
      */
     protected function persistTokens(Channel $channel, array $tokenResponse): void
@@ -81,6 +94,11 @@ abstract class AbstractMarketplaceHttpAdapter
         $channel->forceFill(['config' => $config])->save();
     }
 
+    /**
+     * Return a valid access token, refreshing it via the token URL if necessary.
+     *
+     * @throws RuntimeException
+     */
     protected function requireAccessToken(Channel $channel, string $tokenUrl, bool $basicAuth = false): string
     {
         $token = $this->accessToken($channel);
@@ -125,6 +143,11 @@ abstract class AbstractMarketplaceHttpAdapter
         return (string) $json['access_token'];
     }
 
+    /**
+     * Log a stub/skip event for the adapter with the channel and extra context.
+     *
+     * @param  array<string, mixed>  $context
+     */
     protected function logStub(string $event, Channel $channel, array $context = []): void
     {
         Log::info($event, array_merge([
@@ -133,5 +156,8 @@ abstract class AbstractMarketplaceHttpAdapter
         ], $context));
     }
 
+    /**
+     * The adapter key identifying this marketplace integration.
+     */
     abstract public function key(): string;
 }

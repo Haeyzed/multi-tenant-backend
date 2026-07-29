@@ -82,6 +82,11 @@ final class WebhookService
         });
     }
 
+    /**
+     * Route a webhook event to the matching subscription state transition based on its type.
+     *
+     * @return bool true if the event was ignored (no matching subscription or event type), false if it was handled
+     */
     private function process(WebhookEvent $event): bool
     {
         $type = strtolower($event->type);
@@ -128,6 +133,10 @@ final class WebhookService
         return true;
     }
 
+    /**
+     * Resolve the local subscription referenced by a webhook event's payload, trying several
+     * known payload shapes for the gateway subscription id.
+     */
     private function resolveSubscription(WebhookEvent $event): ?Subscription
     {
         $type = strtolower($event->type);
@@ -165,6 +174,10 @@ final class WebhookService
         return null;
     }
 
+    /**
+     * Mark the invoice matching the payment succeeded webhook as paid (creating one from the
+     * payload if none matches) and reactivate the subscription.
+     */
     private function handlePaymentSucceeded(WebhookEvent $event, Subscription $subscription): void
     {
         $gatewayInvoiceId = data_get($event->payload, 'data.object.id')

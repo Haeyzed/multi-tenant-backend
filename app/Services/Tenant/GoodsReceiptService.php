@@ -108,6 +108,9 @@ final class GoodsReceiptService
         });
     }
 
+    /**
+     * Load a goods receipt with its purchase order, warehouse, items, and landed cost relations.
+     */
     public function find(GoodsReceipt $goodsReceipt): GoodsReceipt
     {
         return $goodsReceipt->loadMissing([
@@ -164,6 +167,11 @@ final class GoodsReceiptService
         });
     }
 
+    /**
+     * Delete a draft goods receipt.
+     *
+     * @throws ValidationException if the goods receipt is not in draft status
+     */
     public function delete(GoodsReceipt $goodsReceipt): void
     {
         $this->assertStatus($goodsReceipt, GoodsReceiptStatus::Draft);
@@ -262,6 +270,11 @@ final class GoodsReceiptService
         });
     }
 
+    /**
+     * Cancel a draft goods receipt.
+     *
+     * @throws ValidationException if the goods receipt is not in draft status
+     */
     public function cancel(GoodsReceipt $goodsReceipt): GoodsReceipt
     {
         $this->assertStatus($goodsReceipt, GoodsReceiptStatus::Draft);
@@ -349,6 +362,9 @@ final class GoodsReceiptService
         }
     }
 
+    /**
+     * Recompute a purchase order's status based on the receipt progress of its items.
+     */
     private function refreshPurchaseOrderStatus(PurchaseOrder $purchaseOrder): void
     {
         $purchaseOrder->unsetRelation('items');
@@ -373,6 +389,11 @@ final class GoodsReceiptService
         }
     }
 
+    /**
+     * Ensure a purchase order is in a status that allows receiving goods against it.
+     *
+     * @throws ValidationException if the purchase order is not approved or partially received
+     */
     private function assertReceivablePurchaseOrder(PurchaseOrder $purchaseOrder): void
     {
         if (! in_array($purchaseOrder->status, [PurchaseOrderStatus::Approved, PurchaseOrderStatus::PartiallyReceived], true)) {
@@ -382,6 +403,11 @@ final class GoodsReceiptService
         }
     }
 
+    /**
+     * Ensure a goods receipt is in the expected status.
+     *
+     * @throws ValidationException if the goods receipt status does not match
+     */
     private function assertStatus(GoodsReceipt $goodsReceipt, GoodsReceiptStatus $expected): void
     {
         if ($goodsReceipt->status !== $expected) {

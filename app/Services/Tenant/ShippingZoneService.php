@@ -54,6 +54,9 @@ final class ShippingZoneService
         ]);
     }
 
+    /**
+     * Load the shipping zone with its methods count.
+     */
     public function find(ShippingZone $zone): ShippingZone
     {
         return $zone->loadCount('methods');
@@ -69,6 +72,9 @@ final class ShippingZoneService
         return $zone->refresh();
     }
 
+    /**
+     * Delete a shipping zone.
+     */
     public function delete(ShippingZone $zone): void
     {
         $zone->delete();

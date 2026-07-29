@@ -123,6 +123,9 @@ final class ProductVariantService
         }
     }
 
+    /**
+     * Generate a unique product slug from a name, appending an incrementing suffix on collision.
+     */
     private function generateUniqueSlug(string $name): string
     {
         $base = Str::slug($name) ?: 'product';

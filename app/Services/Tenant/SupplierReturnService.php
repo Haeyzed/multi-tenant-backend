@@ -93,6 +93,9 @@ final class SupplierReturnService
         });
     }
 
+    /**
+     * Load the supplier return with its related supplier, warehouse, items, and goods receipt.
+     */
     public function find(SupplierReturn $supplierReturn): SupplierReturn
     {
         return $supplierReturn->loadMissing(['supplier', 'warehouse', 'items.product', 'goodsReceipt']);
@@ -158,6 +161,11 @@ final class SupplierReturnService
         });
     }
 
+    /**
+     * Delete a draft supplier return.
+     *
+     * @throws ValidationException if the supplier return is not in draft status
+     */
     public function delete(SupplierReturn $supplierReturn): void
     {
         $this->assertStatus($supplierReturn, SupplierReturnStatus::Draft);
@@ -204,6 +212,11 @@ final class SupplierReturnService
         });
     }
 
+    /**
+     * Cancel a draft supplier return.
+     *
+     * @throws ValidationException if the supplier return is not in draft status
+     */
     public function cancel(SupplierReturn $supplierReturn): SupplierReturn
     {
         $this->assertStatus($supplierReturn, SupplierReturnStatus::Draft);
@@ -256,6 +269,11 @@ final class SupplierReturnService
         }
     }
 
+    /**
+     * Ensure the given supplier exists.
+     *
+     * @throws ValidationException if the supplier is invalid
+     */
     private function assertSupplier(int $supplierId): void
     {
         if (! Supplier::query()->whereKey($supplierId)->exists()) {
@@ -265,6 +283,11 @@ final class SupplierReturnService
         }
     }
 
+    /**
+     * Ensure the given warehouse exists.
+     *
+     * @throws ValidationException if the warehouse is invalid
+     */
     private function assertWarehouse(int $warehouseId): void
     {
         if (! Warehouse::query()->whereKey($warehouseId)->exists()) {
@@ -274,6 +297,11 @@ final class SupplierReturnService
         }
     }
 
+    /**
+     * Ensure the supplier return is in the expected status.
+     *
+     * @throws ValidationException if the supplier return status does not match
+     */
     private function assertStatus(SupplierReturn $supplierReturn, SupplierReturnStatus $expected): void
     {
         if ($supplierReturn->status !== $expected) {

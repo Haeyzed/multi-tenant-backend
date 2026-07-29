@@ -14,6 +14,7 @@ use App\Models\Tenant\Supplier;
 use App\Models\Tenant\SupplierInvoice;
 use App\Models\Tenant\SupplierInvoiceItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -63,6 +64,9 @@ final class SupplierInvoiceService
             ->appends(request()->query());
     }
 
+    /**
+     * Load the supplier invoice with its related supplier, purchase order, goods receipt, and items.
+     */
     public function find(SupplierInvoice $invoice): SupplierInvoice
     {
         return $invoice->loadMissing(['supplier', 'purchaseOrder', 'goodsReceipt', 'items.product']);
@@ -167,6 +171,11 @@ final class SupplierInvoiceService
         });
     }
 
+    /**
+     * Delete a draft supplier invoice.
+     *
+     * @throws ValidationException if the invoice is not in draft status
+     */
     public function delete(SupplierInvoice $invoice): void
     {
         if ($invoice->status !== SupplierInvoiceStatus::Draft) {
@@ -334,11 +343,19 @@ final class SupplierInvoiceService
         return $lines;
     }
 
+    /**
+     * Ensure the given supplier exists.
+     *
+     * @throws ModelNotFoundException if the supplier is not found
+     */
     private function assertSupplier(int $supplierId): void
     {
         Supplier::query()->findOrFail($supplierId);
     }
 
+    /**
+     * Dispatch the invoice issued event for a supplier invoice.
+     */
     private function dispatchInvoiceIssued(SupplierInvoice $invoice): void
     {
         /** @var Tenant $tenant */

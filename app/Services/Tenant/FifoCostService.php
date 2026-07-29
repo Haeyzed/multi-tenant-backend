@@ -16,6 +16,10 @@ final class FifoCostService implements InventoryValuationStrategy
 {
     public function __construct(private WeightedAverageCostService $weightedAverage) {}
 
+    /**
+     * Receive stock into a lot at the given unit cost, blending it with any
+     * existing lot quantity, and record it in the weighted average valuation.
+     */
     public function receive(Product $product, int $quantity, int $unitCost, ?StockLot $lot = null): void
     {
         if ($quantity < 1) {
@@ -36,6 +40,10 @@ final class FifoCostService implements InventoryValuationStrategy
         $this->weightedAverage->receive($product, $quantity, $unitCost);
     }
 
+    /**
+     * Resolve the current FIFO unit cost using the oldest stock lot with quantity,
+     * falling back to the weighted average cost.
+     */
     public function unitCost(Product $product): int
     {
         /** @var StockLot|null $lot */
@@ -53,6 +61,11 @@ final class FifoCostService implements InventoryValuationStrategy
         return $this->weightedAverage->unitCost($product);
     }
 
+    /**
+     * Consume stock oldest-lot-first and return the total cost of goods sold.
+     *
+     * @throws ValidationException if there is not enough lot quantity available
+     */
     public function consume(Product $product, int $quantity): int
     {
         if ($quantity < 1) {

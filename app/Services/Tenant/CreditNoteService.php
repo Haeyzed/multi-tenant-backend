@@ -107,11 +107,19 @@ final class CreditNoteService
         });
     }
 
+    /**
+     * Load a single credit note with its invoice, customer, items, and order.
+     */
     public function find(CreditNote $creditNote): CreditNote
     {
         return $creditNote->loadMissing(['salesInvoice', 'customer', 'items.product', 'order']);
     }
 
+    /**
+     * Delete a draft credit note.
+     *
+     * @throws ValidationException
+     */
     public function delete(CreditNote $creditNote): void
     {
         $this->assertStatus($creditNote, CreditNoteStatus::Draft);
@@ -148,6 +156,11 @@ final class CreditNoteService
         });
     }
 
+    /**
+     * Void an issued credit note.
+     *
+     * @throws ValidationException
+     */
     public function void(CreditNote $creditNote): CreditNote
     {
         $this->assertStatus($creditNote, CreditNoteStatus::Issued);
@@ -206,6 +219,9 @@ final class CreditNoteService
         return $lines;
     }
 
+    /**
+     * Apportion the credit note's tax proportionally to the source invoice's tax rate.
+     */
     private function calculateTax(int $subtotal, SalesInvoice $invoice): int
     {
         if ($subtotal === 0 || $invoice->subtotal === 0 || $invoice->tax === 0) {
@@ -215,6 +231,11 @@ final class CreditNoteService
         return (int) round($subtotal * ($invoice->tax / $invoice->subtotal));
     }
 
+    /**
+     * Ensure the credit note is in the expected status.
+     *
+     * @throws ValidationException
+     */
     private function assertStatus(CreditNote $creditNote, CreditNoteStatus $expected): void
     {
         if ($creditNote->status !== $expected) {

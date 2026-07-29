@@ -121,6 +121,11 @@ final class BundleService
         return $lines;
     }
 
+    /**
+     * Ensure the product is a bundle or kit before managing its components.
+     *
+     * @throws ValidationException
+     */
     private function assertBundleable(Product $product): void
     {
         if (! in_array($product->type, [ProductType::Bundle, ProductType::Kit], true)) {

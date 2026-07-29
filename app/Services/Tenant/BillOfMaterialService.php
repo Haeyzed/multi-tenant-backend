@@ -84,6 +84,9 @@ final class BillOfMaterialService
         });
     }
 
+    /**
+     * Load a single bill of materials with its product and component items.
+     */
     public function find(BillOfMaterial $bom): BillOfMaterial
     {
         return $bom->loadMissing(['product', 'items.componentProduct']);
@@ -120,6 +123,9 @@ final class BillOfMaterialService
         });
     }
 
+    /**
+     * Delete a bill of materials.
+     */
     public function delete(BillOfMaterial $bom): void
     {
         $bom->delete();

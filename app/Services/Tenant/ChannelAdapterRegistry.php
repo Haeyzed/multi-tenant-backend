@@ -26,6 +26,9 @@ final class ChannelAdapterRegistry
         private EbayChannelAdapter $ebayAdapter,
     ) {}
 
+    /**
+     * Resolve the adapter configured for a channel's assigned adapter key.
+     */
     public function for(Channel $channel): ChannelAdapter
     {
         $key = $channel->adapter ?? ChannelAdapterKey::None;
@@ -39,6 +42,11 @@ final class ChannelAdapterRegistry
         };
     }
 
+    /**
+     * Resolve an adapter by its raw adapter key value.
+     *
+     * @throws InvalidArgumentException
+     */
     public function resolve(string $key): ChannelAdapter
     {
         $enum = ChannelAdapterKey::tryFrom($key);

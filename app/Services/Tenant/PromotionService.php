@@ -93,6 +93,9 @@ final class PromotionService
         });
     }
 
+    /**
+     * Load a promotion with its scoped products and customer groups.
+     */
     public function find(Promotion $promotion): Promotion
     {
         return $promotion->load(['products', 'customerGroups']);
@@ -151,6 +154,9 @@ final class PromotionService
         });
     }
 
+    /**
+     * Delete a promotion.
+     */
     public function delete(Promotion $promotion): void
     {
         $promotion->delete();
@@ -178,6 +184,11 @@ final class PromotionService
         $promotion->customerGroups()->sync($groupIds);
     }
 
+    /**
+     * Validate a promotion's type/value/buy-quantity combination against its type's rules.
+     *
+     * @throws ValidationException if the type is invalid or the value/buy quantity is out of range
+     */
     private function assertPromotionValue(string $type, int $value, ?int $buyQuantity = null): void
     {
         $enum = PromotionType::tryFrom($type);

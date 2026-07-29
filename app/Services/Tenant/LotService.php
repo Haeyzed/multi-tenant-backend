@@ -56,6 +56,9 @@ final class LotService
             ->appends(request()->query());
     }
 
+    /**
+     * Load a stock lot with its warehouse, product, and serial relations.
+     */
     public function find(StockLot $stockLot): StockLot
     {
         return $stockLot->load(['warehouse', 'product', 'serials']);

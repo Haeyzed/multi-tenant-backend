@@ -100,6 +100,9 @@ final class PlanService
         });
     }
 
+    /**
+     * Resolve the given plan with its prices and features loaded.
+     */
     public function find(Plan $plan): Plan
     {
         return $plan->loadMissing(['prices', 'features']);
@@ -145,6 +148,9 @@ final class PlanService
         });
     }
 
+    /**
+     * Permanently remove the given plan.
+     */
     public function delete(Plan $plan): void
     {
         $plan->delete();

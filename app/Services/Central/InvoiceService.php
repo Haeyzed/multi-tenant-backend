@@ -11,6 +11,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;
 use Spatie\QueryBuilder\QueryBuilder;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Invoice and payment history for tenants.
@@ -38,11 +39,19 @@ final class InvoiceService
             ->appends(request()->query());
     }
 
+    /**
+     * Resolve the given invoice with its billing relations loaded.
+     */
     public function find(Invoice $invoice): Invoice
     {
         return $invoice->loadMissing(['payments', 'subscription.plan', 'coupon']);
     }
 
+    /**
+     * Resolve the given invoice, scoped to the given tenant.
+     *
+     * @throws NotFoundHttpException if the invoice does not belong to the tenant
+     */
     public function findForTenant(Tenant $tenant, Invoice $invoice): Invoice
     {
         abort_unless($invoice->tenant_id === $tenant->getTenantKey(), 404);

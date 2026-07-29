@@ -144,11 +144,19 @@ final class ShipmentService
         });
     }
 
+    /**
+     * Load the shipment with its related order, fulfilment, packages, carrier, and method.
+     */
     public function find(Shipment $shipment): Shipment
     {
         return $shipment->loadMissing(['order', 'fulfilment', 'packages', 'shippingCarrier', 'shippingMethod']);
     }
 
+    /**
+     * Purchase a shipping label for a package via the configured label provider.
+     *
+     * @throws Throwable
+     */
     public function purchaseLabel(Shipment $shipment, ShipmentPackage $package): ShipmentPackage
     {
         $label = $this->shippingLabelProvider->purchaseLabel($shipment, $package);
@@ -164,6 +172,11 @@ final class ShipmentService
         return $package->refresh();
     }
 
+    /**
+     * Mark a draft shipment as dispatched (in transit).
+     *
+     * @throws ValidationException if the shipment is not in draft status
+     */
     public function dispatch(Shipment $shipment): Shipment
     {
         $this->assertStatus($shipment, ShipmentStatus::Draft);
@@ -200,6 +213,11 @@ final class ShipmentService
         });
     }
 
+    /**
+     * Cancel a draft shipment.
+     *
+     * @throws ValidationException if the shipment is not in draft status
+     */
     public function cancel(Shipment $shipment): Shipment
     {
         $this->assertStatus($shipment, ShipmentStatus::Draft);
@@ -209,12 +227,22 @@ final class ShipmentService
         return $this->find($shipment->refresh());
     }
 
+    /**
+     * Delete a draft shipment.
+     *
+     * @throws ValidationException if the shipment is not in draft status
+     */
     public function delete(Shipment $shipment): void
     {
         $this->assertStatus($shipment, ShipmentStatus::Draft);
         $shipment->delete();
     }
 
+    /**
+     * Ensure the shipment is in the expected status.
+     *
+     * @throws ValidationException if the shipment status does not match
+     */
     private function assertStatus(Shipment $shipment, ShipmentStatus $expected): void
     {
         if ($shipment->status !== $expected) {

@@ -13,6 +13,8 @@ use Illuminate\Validation\ValidationException;
 final class ProductTranslationService
 {
     /**
+     * List a product's translations ordered by locale.
+     *
      * @return Collection<int, ProductTranslation>
      */
     public function list(Product $product): Collection
@@ -21,6 +23,8 @@ final class ProductTranslationService
     }
 
     /**
+     * Create or update a product's translation for the given locale.
+     *
      * @param  array{
      *     name: string,
      *     slug?: string|null,
@@ -28,6 +32,8 @@ final class ProductTranslationService
      *     meta_title?: string|null,
      *     meta_description?: string|null
      * }  $data
+     *
+     * @throws ValidationException if the locale is empty
      */
     public function upsert(Product $product, string $locale, array $data): ProductTranslation
     {
@@ -56,6 +62,9 @@ final class ProductTranslationService
         return $translation->refresh();
     }
 
+    /**
+     * Delete a product's translation for the given locale.
+     */
     public function delete(Product $product, string $locale): void
     {
         ProductTranslation::query()

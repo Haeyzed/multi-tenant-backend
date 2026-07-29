@@ -102,6 +102,9 @@ final class ChannelService
         });
     }
 
+    /**
+     * Load a single channel with its warehouse and related counts.
+     */
     public function find(Channel $channel): Channel
     {
         return $channel->loadMissing(['warehouse'])->loadCount(['inventories', 'productPrices', 'orders']);
@@ -143,13 +146,20 @@ final class ChannelService
         });
     }
 
+    /**
+     * Delete a channel.
+     */
     public function delete(Channel $channel): void
     {
         $channel->delete();
     }
 
     /**
+     * Build the OAuth authorize redirect URL for a channel's adapter.
+     *
      * @return array{redirect_url: string}
+     *
+     * @throws ValidationException
      */
     public function oauthRedirect(Channel $channel, string $callbackUrl): array
     {
@@ -158,11 +168,22 @@ final class ChannelService
         ];
     }
 
+    /**
+     * Handle an OAuth callback, persisting exchanged tokens on the target channel.
+     *
+     * @throws ValidationException
+     * @throws Throwable
+     */
     public function oauthCallback(string $adapter, string $code, string $state): Channel
     {
         return $this->find($this->oauth->handleCallback($adapter, $code, $state));
     }
 
+    /**
+     * Pull orders from the channel's adapter.
+     *
+     * @return array{channel_id: int, adapter: string, pulled: int}
+     */
     public function pullOrders(Channel $channel): array
     {
         $pulled = $this->adapters->for($channel)->pullOrders($channel);
@@ -174,6 +195,11 @@ final class ChannelService
         ];
     }
 
+    /**
+     * Sync inventory to the channel's adapter.
+     *
+     * @return array{channel_id: int, adapter: string, synced: int}
+     */
     public function syncInventory(Channel $channel): array
     {
         $synced = $this->adapters->for($channel)->syncInventory($channel);
@@ -185,6 +211,9 @@ final class ChannelService
         ];
     }
 
+    /**
+     * Publish a product to the channel via its adapter.
+     */
     public function publishProduct(Channel $channel, Product $product): Channel
     {
         $this->adapters->for($channel)->publishProduct($channel, $product);
@@ -192,6 +221,11 @@ final class ChannelService
         return $this->find($channel->refresh());
     }
 
+    /**
+     * Ensure the given warehouse exists.
+     *
+     * @throws ValidationException
+     */
     private function assertWarehouse(int $warehouseId): void
     {
         if (! Warehouse::query()->whereKey($warehouseId)->exists()) {
@@ -201,6 +235,9 @@ final class ChannelService
         }
     }
 
+    /**
+     * Clear the default flag on every other channel.
+     */
     private function unsetOtherDefaults(Channel $channel): void
     {
         Channel::query()

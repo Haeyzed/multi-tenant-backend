@@ -65,6 +65,9 @@ final class CouponService
         return Coupon::query()->create($this->normalize($data));
     }
 
+    /**
+     * Resolve the given coupon.
+     */
     public function find(Coupon $coupon): Coupon
     {
         return $coupon;
@@ -90,6 +93,9 @@ final class CouponService
         return $coupon->refresh();
     }
 
+    /**
+     * Permanently remove the given coupon.
+     */
     public function delete(Coupon $coupon): void
     {
         $coupon->delete();

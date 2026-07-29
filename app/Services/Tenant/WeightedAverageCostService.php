@@ -14,6 +14,9 @@ use App\Models\Tenant\WarehouseStock;
  */
 final class WeightedAverageCostService implements InventoryValuationStrategy
 {
+    /**
+     * Update the product's moving weighted-average cost after receiving new stock.
+     */
     public function receive(Product $product, int $quantity, int $unitCost, ?StockLot $lot = null): void
     {
         if ($quantity < 1) {
@@ -36,11 +39,17 @@ final class WeightedAverageCostService implements InventoryValuationStrategy
         $product->forceFill(['average_cost' => $newAverage])->save();
     }
 
+    /**
+     * Get the product's current weighted-average unit cost, falling back to unit price.
+     */
     public function unitCost(Product $product): int
     {
         return (int) ($product->average_cost ?? $product->unit_price ?? 0);
     }
 
+    /**
+     * Compute the total cost of consuming a quantity of the product at its current average cost.
+     */
     public function consume(Product $product, int $quantity): int
     {
         if ($quantity < 1) {

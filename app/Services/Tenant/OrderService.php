@@ -22,6 +22,7 @@ use App\Models\Tenant\Tax;
 use App\Models\Tenant\Warehouse;
 use App\Services\Billing\EntitlementEnforcer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -187,6 +188,9 @@ final class OrderService
         });
     }
 
+    /**
+     * Load an order with its customer, item, invoice, tax rate, and warehouse relations.
+     */
     public function find(Order $order): Order
     {
         return $order->loadMissing(['customer', 'items.product', 'salesInvoice', 'taxRate', 'warehouse']);
@@ -492,11 +496,17 @@ final class OrderService
         }
     }
 
+    /**
+     * Determine whether stock availability must be enforced for an order in the given status.
+     */
     private function shouldEnforceStock(OrderStatus $status): bool
     {
         return ! in_array($status, [OrderStatus::Draft, OrderStatus::Cancelled, OrderStatus::Backordered], true);
     }
 
+    /**
+     * Determine whether inventory should be decremented for an order in the given status.
+     */
     private function shouldDecrementInventory(OrderStatus $status): bool
     {
         return $status === OrderStatus::Confirmed || $status === OrderStatus::Fulfilled;
@@ -534,6 +544,12 @@ final class OrderService
         }
     }
 
+    /**
+     * Decrement warehouse or simple stock quantities for an order's items (exploding
+     * bundles into their components), consuming any existing stock reservations.
+     *
+     * @throws ValidationException if there is insufficient stock for any line item
+     */
     private function applyInventory(Order $order): void
     {
         if ($order->inventory_decremented) {
@@ -610,6 +626,10 @@ final class OrderService
         $order->forceFill(['inventory_decremented' => true])->save();
     }
 
+    /**
+     * Reverse a previous inventory decrement for an order's items, restoring
+     * warehouse or simple stock quantities.
+     */
     private function restoreInventory(Order $order): void
     {
         if (! $order->inventory_decremented) {
@@ -667,6 +687,10 @@ final class OrderService
         $order->forceFill(['inventory_decremented' => false])->save();
     }
 
+    /**
+     * Create temporary warehouse stock reservations for an order's items
+     * (exploding bundles into their components).
+     */
     private function reserveOrderStock(Order $order): void
     {
         if ($order->warehouse_id === null) {
@@ -699,6 +723,11 @@ final class OrderService
         }
     }
 
+    /**
+     * Resolve the tax to apply, falling back to the active default tax when no id is given.
+     *
+     * @throws ModelNotFoundException if the given tax id does not exist or is inactive
+     */
     private function resolveTax(?int $taxId): ?Tax
     {
         if ($taxId !== null) {
@@ -711,6 +740,12 @@ final class OrderService
         return Tax::query()->where('is_default', true)->where('is_active', true)->first();
     }
 
+    /**
+     * Validate the given warehouse id, when provided, references an active warehouse,
+     * otherwise fall back to the active default warehouse.
+     *
+     * @throws ModelNotFoundException if the given warehouse id does not exist or is inactive
+     */
     private function resolveWarehouseId(?int $warehouseId): ?int
     {
         if ($warehouseId !== null) {
@@ -786,6 +821,11 @@ final class OrderService
         return $lines;
     }
 
+    /**
+     * Ensure adding an order of the given total would not exceed the customer's credit limit.
+     *
+     * @throws ValidationException if the order would exceed the customer's credit limit
+     */
     private function assertCreditLimit(Customer $customer, int $orderTotal, ?int $excludeOrderId = null): void
     {
         if ($customer->credit_limit === null) {
@@ -801,6 +841,10 @@ final class OrderService
         }
     }
 
+    /**
+     * Sum the outstanding balance of a customer's unpaid, non-void sales invoices,
+     * optionally excluding a specific order.
+     */
     private function openAccountsReceivable(int $customerId, ?int $excludeOrderId = null): int
     {
         $query = SalesInvoice::query()
@@ -814,6 +858,9 @@ final class OrderService
         return $query->get()->sum(fn (SalesInvoice $invoice): int => $this->invoiceOutstandingBalance($invoice));
     }
 
+    /**
+     * Compute the remaining unpaid balance on a sales invoice after applied payment allocations.
+     */
     private function invoiceOutstandingBalance(SalesInvoice $invoice): int
     {
         $allocated = (int) SalesPaymentAllocation::query()

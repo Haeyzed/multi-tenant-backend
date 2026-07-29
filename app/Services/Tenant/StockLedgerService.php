@@ -92,6 +92,9 @@ final class StockLedgerService
         });
     }
 
+    /**
+     * Get the total quantity on hand for a product in a warehouse.
+     */
     public function onHand(Warehouse $warehouse, Product $product): int
     {
         return (int) WarehouseStock::query()
@@ -100,6 +103,9 @@ final class StockLedgerService
             ->value('quantity');
     }
 
+    /**
+     * Get the total active (unexpired) reserved quantity for a product in a warehouse.
+     */
     public function reserved(Warehouse $warehouse, Product $product): int
     {
         return (int) StockReservation::query()
@@ -112,6 +118,9 @@ final class StockLedgerService
             ->sum('quantity');
     }
 
+    /**
+     * Get the quantity available to sell (on hand minus reserved and on-hold) for a product in a warehouse.
+     */
     public function available(Warehouse $warehouse, Product $product): int
     {
         $levels = $this->levels($warehouse, $product);
@@ -145,6 +154,9 @@ final class StockLedgerService
         ];
     }
 
+    /**
+     * Sum the outstanding (not yet fully received) quantity for a product across open purchase orders.
+     */
     public function qtyOnOrder(int $productId, ?int $warehouseId = null): int
     {
         $query = DB::table('purchase_order_items')
@@ -165,6 +177,9 @@ final class StockLedgerService
         return (int) $query->sum(DB::raw('purchase_order_items.quantity - purchase_order_items.quantity_received'));
     }
 
+    /**
+     * Recompute and persist the product's denormalized total stock quantity across all warehouses.
+     */
     private function syncProductStockProjection(int $productId): void
     {
         $sum = (int) WarehouseStock::query()

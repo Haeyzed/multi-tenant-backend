@@ -20,6 +20,11 @@ use Throwable;
  */
 final class ChannelOAuthService
 {
+    /**
+     * Build the marketplace-specific OAuth authorize URL for a channel.
+     *
+     * @throws ValidationException
+     */
     public function redirectUrl(Channel $channel, string $callbackUrl): string
     {
         $adapter = $channel->adapter ?? ChannelAdapterKey::None;
@@ -33,6 +38,12 @@ final class ChannelOAuthService
         };
     }
 
+    /**
+     * Validate the OAuth callback state and exchange the code for tokens.
+     *
+     * @throws ValidationException
+     * @throws Throwable
+     */
     public function handleCallback(string $adapter, string $code, string $state): Channel
     {
         $channelId = (int) Str::before($state, ':');
@@ -71,6 +82,11 @@ final class ChannelOAuthService
         return $config;
     }
 
+    /**
+     * Build the Amazon Seller Central authorize URL for a channel.
+     *
+     * @throws RuntimeException
+     */
     private function amazonAuthorizeUrl(Channel $channel, string $callbackUrl): string
     {
         $applicationId = config('services.amazon.application_id') ?: $this->clientId($channel);
@@ -87,6 +103,11 @@ final class ChannelOAuthService
         ]);
     }
 
+    /**
+     * Build the eBay authorize URL for a channel.
+     *
+     * @throws RuntimeException
+     */
     private function ebayAuthorizeUrl(Channel $channel, string $callbackUrl): string
     {
         $clientId = $this->clientId($channel);
@@ -180,6 +201,9 @@ final class ChannelOAuthService
         return $channel->refresh();
     }
 
+    /**
+     * Read the channel's OAuth client id, if configured.
+     */
     private function clientId(Channel $channel): ?string
     {
         $value = is_array($channel->config) ? ($channel->config['client_id'] ?? null) : null;
@@ -187,6 +211,9 @@ final class ChannelOAuthService
         return is_string($value) && $value !== '' ? $value : null;
     }
 
+    /**
+     * Read and decrypt the channel's OAuth client secret, if configured.
+     */
     private function clientSecret(Channel $channel): ?string
     {
         $value = is_array($channel->config) ? ($channel->config['client_secret'] ?? null) : null;

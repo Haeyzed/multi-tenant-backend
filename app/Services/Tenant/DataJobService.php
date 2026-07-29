@@ -66,11 +66,19 @@ final class DataJobService
         return $job->refresh();
     }
 
+    /**
+     * Load a data job with its creator relation for display.
+     */
     public function find(DataJob $dataJob): DataJob
     {
         return $dataJob->loadMissing('creator');
     }
 
+    /**
+     * Cancel a pending or processing data job.
+     *
+     * @throws ValidationException if the job is not pending or processing
+     */
     public function cancel(DataJob $dataJob): DataJob
     {
         if (! in_array($dataJob->status, [DataJobStatus::Pending, DataJobStatus::Processing], true)) {
@@ -87,6 +95,11 @@ final class DataJobService
         return $this->find($dataJob->refresh());
     }
 
+    /**
+     * Delete a data job that is not currently pending or processing.
+     *
+     * @throws ValidationException if the job is pending or processing
+     */
     public function delete(DataJob $dataJob): void
     {
         if (in_array($dataJob->status, [DataJobStatus::Pending, DataJobStatus::Processing], true)) {
@@ -98,6 +111,9 @@ final class DataJobService
         $dataJob->delete();
     }
 
+    /**
+     * Execute the data job synchronously, recording its result or failure.
+     */
     public function process(DataJob $dataJob): DataJob
     {
         if ($dataJob->status === DataJobStatus::Cancelled) {

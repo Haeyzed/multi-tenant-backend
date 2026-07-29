@@ -107,6 +107,9 @@ final class RfqService
         });
     }
 
+    /**
+     * Load the RFQ with its related purchase request, creator, items, and supplier quotes.
+     */
     public function find(SupplierRfq $rfq): SupplierRfq
     {
         return $rfq->loadMissing([
@@ -151,6 +154,11 @@ final class RfqService
         });
     }
 
+    /**
+     * Delete a draft RFQ.
+     *
+     * @throws ValidationException if the RFQ is not in draft status
+     */
     public function delete(SupplierRfq $rfq): void
     {
         $this->assertRfqStatus($rfq, SupplierRfqStatus::Draft);
@@ -209,6 +217,11 @@ final class RfqService
         });
     }
 
+    /**
+     * Cancel an RFQ that has not yet been closed.
+     *
+     * @throws ValidationException if the RFQ is not draft or sent
+     */
     public function cancel(SupplierRfq $rfq): SupplierRfq
     {
         if (! in_array($rfq->status, [SupplierRfqStatus::Draft, SupplierRfqStatus::Sent], true)) {
@@ -245,6 +258,9 @@ final class RfqService
             ->appends(request()->query());
     }
 
+    /**
+     * Load a supplier quote with its related RFQ, supplier, and items.
+     */
     public function findQuote(SupplierQuote $quote): SupplierQuote
     {
         return $quote->loadMissing(['rfq.items.product', 'supplier', 'items.product']);
@@ -346,6 +362,11 @@ final class RfqService
         });
     }
 
+    /**
+     * Reject a pending or submitted supplier quote.
+     *
+     * @throws ValidationException if the RFQ is not sent or the quote is not pending/submitted
+     */
     public function rejectQuote(SupplierQuote $quote): SupplierQuote
     {
         $quote->loadMissing('rfq');
@@ -443,6 +464,11 @@ final class RfqService
         }
     }
 
+    /**
+     * Ensure the RFQ has at least one item.
+     *
+     * @throws ValidationException if the RFQ has no items
+     */
     private function assertHasItems(SupplierRfq $rfq): void
     {
         if ($rfq->items()->count() === 0) {
@@ -452,6 +478,11 @@ final class RfqService
         }
     }
 
+    /**
+     * Ensure the RFQ is in the expected status.
+     *
+     * @throws ValidationException if the RFQ status does not match
+     */
     private function assertRfqStatus(SupplierRfq $rfq, SupplierRfqStatus $expected): void
     {
         if ($rfq->status !== $expected) {
@@ -461,6 +492,11 @@ final class RfqService
         }
     }
 
+    /**
+     * Ensure the supplier quote is in the expected status.
+     *
+     * @throws ValidationException if the quote status does not match
+     */
     private function assertQuoteStatus(SupplierQuote $quote, SupplierQuoteStatus $expected): void
     {
         if ($quote->status !== $expected) {

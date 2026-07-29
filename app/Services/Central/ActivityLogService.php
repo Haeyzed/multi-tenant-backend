@@ -41,6 +41,9 @@ final class ActivityLogService
             ->appends(request()->query());
     }
 
+    /**
+     * Resolve the given activity record.
+     */
     public function find(Activity $activity): Activity
     {
         return $activity;

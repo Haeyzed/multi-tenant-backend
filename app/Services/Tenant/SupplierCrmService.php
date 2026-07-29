@@ -90,6 +90,11 @@ final class SupplierCrmService
         });
     }
 
+    /**
+     * Delete a supplier contact.
+     *
+     * @throws ValidationException if the contact does not belong to the supplier
+     */
     public function deleteContact(Supplier $supplier, SupplierContact $contact): void
     {
         $this->assertBelongs($contact->supplier_id, $supplier->id);
@@ -175,12 +180,20 @@ final class SupplierCrmService
         });
     }
 
+    /**
+     * Delete a supplier address.
+     *
+     * @throws ValidationException if the address does not belong to the supplier
+     */
     public function deleteAddress(Supplier $supplier, SupplierAddress $address): void
     {
         $this->assertBelongs($address->supplier_id, $supplier->id);
         $address->delete();
     }
 
+    /**
+     * Unset the primary flag on all other contacts belonging to the supplier.
+     */
     private function unsetOtherPrimaryContacts(Supplier $supplier, SupplierContact $contact): void
     {
         SupplierContact::query()
@@ -189,6 +202,9 @@ final class SupplierCrmService
             ->update(['is_primary' => false]);
     }
 
+    /**
+     * Unset the default flag on all other addresses belonging to the supplier.
+     */
     private function unsetOtherDefaultAddresses(Supplier $supplier, SupplierAddress $address): void
     {
         SupplierAddress::query()
@@ -197,6 +213,11 @@ final class SupplierCrmService
             ->update(['is_default' => false]);
     }
 
+    /**
+     * Ensure a resource's supplier id matches the expected supplier.
+     *
+     * @throws ValidationException if the resource does not belong to the expected supplier
+     */
     private function assertBelongs(int $actualSupplierId, int $expectedSupplierId): void
     {
         if ($actualSupplierId !== $expectedSupplierId) {

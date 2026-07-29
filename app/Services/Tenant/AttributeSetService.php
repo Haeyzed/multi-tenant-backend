@@ -36,6 +36,9 @@ final class AttributeSetService
         ]);
     }
 
+    /**
+     * Load a single attribute set with its product family and attributes.
+     */
     public function find(AttributeSet $attributeSet): AttributeSet
     {
         return $attributeSet->load(['productFamily', 'attributes']);
@@ -49,6 +52,9 @@ final class AttributeSetService
         return $this->find($attributeSet->refresh());
     }
 
+    /**
+     * Delete an attribute set.
+     */
     public function delete(AttributeSet $attributeSet): void
     {
         $attributeSet->delete();

@@ -104,6 +104,9 @@ final class PurchaseOrderService
         });
     }
 
+    /**
+     * Load the purchase order with its related supplier, warehouse, items, and approver.
+     */
     public function find(PurchaseOrder $purchaseOrder): PurchaseOrder
     {
         return $purchaseOrder->loadMissing(['supplier', 'warehouse', 'items.product', 'approver']);
@@ -171,12 +174,22 @@ final class PurchaseOrderService
         });
     }
 
+    /**
+     * Delete a draft purchase order.
+     *
+     * @throws ValidationException if the purchase order is not in draft status
+     */
     public function delete(PurchaseOrder $purchaseOrder): void
     {
         $this->assertStatus($purchaseOrder, PurchaseOrderStatus::Draft);
         $purchaseOrder->delete();
     }
 
+    /**
+     * Submit a draft purchase order for approval.
+     *
+     * @throws ValidationException if the purchase order is not draft or has no items
+     */
     public function submit(PurchaseOrder $purchaseOrder): PurchaseOrder
     {
         $this->assertStatus($purchaseOrder, PurchaseOrderStatus::Draft);
@@ -190,6 +203,11 @@ final class PurchaseOrderService
         return $this->find($purchaseOrder->refresh());
     }
 
+    /**
+     * Approve a submitted purchase order and dispatch the approved event.
+     *
+     * @throws ValidationException if the purchase order is not in submitted status
+     */
     public function approve(PurchaseOrder $purchaseOrder): PurchaseOrder
     {
         $this->assertStatus($purchaseOrder, PurchaseOrderStatus::Submitted);
@@ -207,6 +225,11 @@ final class PurchaseOrderService
         return $this->find($purchaseOrder->refresh());
     }
 
+    /**
+     * Cancel a purchase order, provided it has not been received and has no receipts.
+     *
+     * @throws ValidationException if the purchase order cannot be cancelled in its current state
+     */
     public function cancel(PurchaseOrder $purchaseOrder): PurchaseOrder
     {
         if (in_array($purchaseOrder->status, [PurchaseOrderStatus::Cancelled, PurchaseOrderStatus::Received, PurchaseOrderStatus::PartiallyReceived], true)) {
@@ -303,6 +326,9 @@ final class PurchaseOrderService
         return $lines;
     }
 
+    /**
+     * Resolve the unit cost for a product from the supplier's catalog, falling back if unset.
+     */
     private function resolveUnitCost(int $supplierId, int $productId, int $fallback): int
     {
         $supplierProduct = SupplierProduct::query()
@@ -317,6 +343,13 @@ final class PurchaseOrderService
         return $fallback;
     }
 
+    /**
+     * Validate that the purchase agreement exists, belongs to the supplier, and is active.
+     *
+     * @return int|null the validated agreement id, or null if none was provided
+     *
+     * @throws ValidationException if the agreement is invalid, mismatched, or inactive
+     */
     private function assertAgreement(?int $agreementId, int $supplierId): ?int
     {
         if ($agreementId === null) {
@@ -372,6 +405,9 @@ final class PurchaseOrderService
         }
     }
 
+    /**
+     * Recalculate the purchase order's subtotal and total from its items and tax.
+     */
     private function rebuildTotals(PurchaseOrder $purchaseOrder): void
     {
         $purchaseOrder->loadMissing('items');
@@ -379,6 +415,11 @@ final class PurchaseOrderService
         $purchaseOrder->total = (int) $purchaseOrder->subtotal + (int) $purchaseOrder->tax;
     }
 
+    /**
+     * Ensure the given supplier exists.
+     *
+     * @throws ValidationException if the supplier is invalid
+     */
     private function assertSupplier(int $supplierId): void
     {
         if (! Supplier::query()->whereKey($supplierId)->exists()) {
@@ -388,6 +429,11 @@ final class PurchaseOrderService
         }
     }
 
+    /**
+     * Ensure the given warehouse exists, if provided.
+     *
+     * @throws ValidationException if the warehouse is invalid
+     */
     private function assertWarehouse(?int $warehouseId): void
     {
         if ($warehouseId === null) {
@@ -401,6 +447,11 @@ final class PurchaseOrderService
         }
     }
 
+    /**
+     * Ensure the purchase order has at least one item.
+     *
+     * @throws ValidationException if the purchase order has no items
+     */
     private function assertHasItems(PurchaseOrder $purchaseOrder): void
     {
         if ($purchaseOrder->items()->count() === 0) {
@@ -410,6 +461,11 @@ final class PurchaseOrderService
         }
     }
 
+    /**
+     * Ensure the purchase order is in the expected status.
+     *
+     * @throws ValidationException if the purchase order status does not match
+     */
     private function assertStatus(PurchaseOrder $purchaseOrder, PurchaseOrderStatus $expected): void
     {
         if ($purchaseOrder->status !== $expected) {

@@ -13,6 +13,8 @@ use App\Notifications\Tenant\TenantErpNotification;
 final class NotificationService
 {
     /**
+     * Send an in-app ERP notification to a tenant user.
+     *
      * @param  array<string, mixed>  $data
      */
     public function notifyUser(User $user, string $title, string $body, array $data = []): void

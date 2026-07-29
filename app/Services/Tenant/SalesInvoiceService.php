@@ -55,6 +55,9 @@ final class SalesInvoiceService
             ->appends(request()->query());
     }
 
+    /**
+     * Load the sales invoice with its related customer and order items.
+     */
     public function find(SalesInvoice $invoice): SalesInvoice
     {
         return $invoice->loadMissing(['customer', 'order.items']);
@@ -149,6 +152,9 @@ final class SalesInvoiceService
         });
     }
 
+    /**
+     * Delete a sales invoice.
+     */
     public function delete(SalesInvoice $invoice): void
     {
         $invoice->delete();

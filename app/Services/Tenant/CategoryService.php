@@ -62,6 +62,9 @@ final class CategoryService
         ]);
     }
 
+    /**
+     * Load a single category with its children, direct, and total product counts.
+     */
     public function find(Category $category): Category
     {
         return $category->loadCount(['children', 'directProducts', 'products']);
@@ -77,6 +80,9 @@ final class CategoryService
         return $category->refresh();
     }
 
+    /**
+     * Delete a category.
+     */
     public function delete(Category $category): void
     {
         $category->delete();

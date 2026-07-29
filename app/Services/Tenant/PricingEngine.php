@@ -100,6 +100,10 @@ final class PricingEngine
         ];
     }
 
+    /**
+     * Resolve the applicable price list, preferring an explicit id, then customer,
+     * customer group, or channel assignments, and finally the currency's default list.
+     */
     private function resolvePriceList(
         string $currency,
         ?Customer $customer,
@@ -166,6 +170,10 @@ final class PricingEngine
             ->first();
     }
 
+    /**
+     * Find the highest-priority currently effective price list assigned to the given
+     * assignable entity (customer, customer group, or channel) for a currency.
+     */
     private function findAssignedList(
         PriceListAssignmentType $type,
         int $assignableId,
@@ -186,6 +194,10 @@ final class PricingEngine
         return $assignment?->priceList;
     }
 
+    /**
+     * Resolve the price list unit price for a product at the given quantity,
+     * using the highest minimum-quantity tier that the quantity satisfies.
+     */
     private function resolveListUnitPrice(PriceList $priceList, int $productId, int $quantity): ?int
     {
         $item = PriceListItem::query()
@@ -198,6 +210,10 @@ final class PricingEngine
         return $item?->unit_price;
     }
 
+    /**
+     * Find the highest-priority currently effective promotion applicable to a product,
+     * customer, and quantity/subtotal combination.
+     */
     private function resolvePromotion(
         Product $product,
         ?Customer $customer,
@@ -246,6 +262,9 @@ final class PricingEngine
         return null;
     }
 
+    /**
+     * Apply a promotion's discount to a unit price based on its type.
+     */
     private function applyPromotion(int $unitPrice, Promotion $promotion, int $quantity = 1): int
     {
         return match ($promotion->type) {
@@ -255,6 +274,9 @@ final class PricingEngine
         };
     }
 
+    /**
+     * Blend a unit price with a buy-X-get-Y promotion by averaging free units into the paid price.
+     */
     private function applyBuyXGetY(int $unitPrice, Promotion $promotion, int $quantity): int
     {
         $buyQuantity = max(1, (int) ($promotion->buy_quantity ?? 1));

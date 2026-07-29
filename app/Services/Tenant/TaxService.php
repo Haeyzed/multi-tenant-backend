@@ -62,6 +62,9 @@ final class TaxService
         return $tax;
     }
 
+    /**
+     * Return the tax unmodified.
+     */
     public function find(Tax $tax): Tax
     {
         return $tax;
@@ -81,11 +84,17 @@ final class TaxService
         return $tax->refresh();
     }
 
+    /**
+     * Delete a tax rate.
+     */
     public function delete(Tax $tax): void
     {
         $tax->delete();
     }
 
+    /**
+     * Unset the default flag on all other tax rates.
+     */
     private function unsetOtherDefaults(Tax $tax): void
     {
         Tax::query()

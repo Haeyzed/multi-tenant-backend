@@ -108,6 +108,9 @@ final class EstimateService
         });
     }
 
+    /**
+     * Load an estimate with its customer, items, tax rate, and converted quotation relations.
+     */
     public function find(Estimate $estimate): Estimate
     {
         return $estimate->loadMissing(['customer', 'items.product', 'taxRate', 'convertedQuotation']);
@@ -170,6 +173,11 @@ final class EstimateService
         });
     }
 
+    /**
+     * Delete an estimate, provided it has not already been converted.
+     *
+     * @throws ValidationException if the estimate has been converted to a quotation
+     */
     public function delete(Estimate $estimate): void
     {
         if ($estimate->status === EstimateStatus::Converted) {
@@ -181,6 +189,11 @@ final class EstimateService
         $estimate->delete();
     }
 
+    /**
+     * Mark a draft (or already sent) estimate as sent.
+     *
+     * @throws ValidationException if the estimate is not draft or sent
+     */
     public function send(Estimate $estimate): Estimate
     {
         if (! in_array($estimate->status, [EstimateStatus::Draft, EstimateStatus::Sent], true)) {
@@ -195,6 +208,9 @@ final class EstimateService
     }
 
     /**
+     * Convert an estimate into a quotation, linking the two records.
+     *
+     * @throws ValidationException if the estimate cannot be converted
      * @throws Throwable
      */
     public function convertToQuotation(Estimate $estimate): Quotation

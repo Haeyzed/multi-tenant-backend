@@ -97,6 +97,9 @@ final class FulfilmentService
         });
     }
 
+    /**
+     * Load a fulfilment with its order, item, and warehouse relations.
+     */
     public function find(Fulfilment $fulfilment): Fulfilment
     {
         return $fulfilment->loadMissing(['order.items', 'items.orderItem.product', 'warehouse']);
@@ -169,6 +172,11 @@ final class FulfilmentService
         });
     }
 
+    /**
+     * Cancel a draft fulfilment.
+     *
+     * @throws ValidationException if the fulfilment is not in draft status
+     */
     public function cancel(Fulfilment $fulfilment): Fulfilment
     {
         $this->assertStatus($fulfilment, FulfilmentStatus::Draft);
@@ -178,6 +186,11 @@ final class FulfilmentService
         return $this->find($fulfilment->refresh());
     }
 
+    /**
+     * Delete a draft fulfilment.
+     *
+     * @throws ValidationException if the fulfilment is not in draft status
+     */
     public function delete(Fulfilment $fulfilment): void
     {
         $this->assertStatus($fulfilment, FulfilmentStatus::Draft);
@@ -213,6 +226,9 @@ final class FulfilmentService
         }
     }
 
+    /**
+     * Validate that the given warehouse id, when provided, references an active warehouse.
+     */
     private function resolveWarehouseId(?int $warehouseId): ?int
     {
         if ($warehouseId !== null) {
@@ -224,6 +240,11 @@ final class FulfilmentService
         return null;
     }
 
+    /**
+     * Ensure a fulfilment is in the expected status.
+     *
+     * @throws ValidationException if the fulfilment status does not match
+     */
     private function assertStatus(Fulfilment $fulfilment, FulfilmentStatus $expected): void
     {
         if ($fulfilment->status !== $expected) {

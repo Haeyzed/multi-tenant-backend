@@ -51,6 +51,9 @@ final class SupplierGroupService
         ]);
     }
 
+    /**
+     * Load the supplier group with its suppliers count.
+     */
     public function find(SupplierGroup $group): SupplierGroup
     {
         return $group->loadCount('suppliers');
@@ -70,6 +73,9 @@ final class SupplierGroupService
         return $group->refresh();
     }
 
+    /**
+     * Delete a supplier group.
+     */
     public function delete(SupplierGroup $group): void
     {
         $group->delete();

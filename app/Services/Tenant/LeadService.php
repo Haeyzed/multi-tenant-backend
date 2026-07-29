@@ -84,6 +84,9 @@ final class LeadService
         ])->load(['owner', 'customer']);
     }
 
+    /**
+     * Load a lead with its owner, customer, opportunity, and activity relations.
+     */
     public function find(Lead $lead): Lead
     {
         return $lead->loadMissing(['owner', 'customer', 'opportunities', 'activities']);
@@ -124,6 +127,11 @@ final class LeadService
         return $this->find($lead->refresh());
     }
 
+    /**
+     * Delete a lead, provided it has not already been converted.
+     *
+     * @throws ValidationException if the lead has been converted
+     */
     public function delete(Lead $lead): void
     {
         if ($lead->status === LeadStatus::Converted) {
@@ -171,6 +179,11 @@ final class LeadService
         });
     }
 
+    /**
+     * Ensure the given user id references an existing user.
+     *
+     * @throws ValidationException if the user id does not exist
+     */
     private function assertUser(int $userId): void
     {
         if (! User::query()->whereKey($userId)->exists()) {

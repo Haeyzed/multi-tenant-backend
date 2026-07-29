@@ -54,6 +54,9 @@ final class WebhookService
         ]);
     }
 
+    /**
+     * Load the webhook endpoint with its deliveries count.
+     */
     public function find(WebhookEndpoint $endpoint): WebhookEndpoint
     {
         return $endpoint->loadCount('deliveries');
@@ -73,6 +76,9 @@ final class WebhookService
         return $endpoint->refresh();
     }
 
+    /**
+     * Delete a webhook endpoint.
+     */
     public function delete(WebhookEndpoint $endpoint): void
     {
         $endpoint->delete();

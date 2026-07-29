@@ -81,6 +81,9 @@ final class PurchaseRequestService
         });
     }
 
+    /**
+     * Load the purchase request with its related requester, approver, warehouse, order, and items.
+     */
     public function find(PurchaseRequest $purchaseRequest): PurchaseRequest
     {
         return $purchaseRequest->loadMissing([
@@ -129,12 +132,22 @@ final class PurchaseRequestService
         });
     }
 
+    /**
+     * Delete a draft purchase request.
+     *
+     * @throws ValidationException if the purchase request is not in draft status
+     */
     public function delete(PurchaseRequest $purchaseRequest): void
     {
         $this->assertStatus($purchaseRequest, PurchaseRequestStatus::Draft);
         $purchaseRequest->delete();
     }
 
+    /**
+     * Submit a draft purchase request for approval.
+     *
+     * @throws ValidationException if the purchase request is not draft or has no items
+     */
     public function submit(PurchaseRequest $purchaseRequest): PurchaseRequest
     {
         $this->assertStatus($purchaseRequest, PurchaseRequestStatus::Draft);
@@ -148,6 +161,11 @@ final class PurchaseRequestService
         return $this->find($purchaseRequest->refresh());
     }
 
+    /**
+     * Approve a submitted purchase request and dispatch the approved event.
+     *
+     * @throws ValidationException if the purchase request is not in submitted status
+     */
     public function approve(PurchaseRequest $purchaseRequest): PurchaseRequest
     {
         $this->assertStatus($purchaseRequest, PurchaseRequestStatus::Submitted);
@@ -165,6 +183,11 @@ final class PurchaseRequestService
         return $this->find($purchaseRequest->refresh());
     }
 
+    /**
+     * Reject a submitted purchase request.
+     *
+     * @throws ValidationException if the purchase request is not in submitted status
+     */
     public function reject(PurchaseRequest $purchaseRequest): PurchaseRequest
     {
         $this->assertStatus($purchaseRequest, PurchaseRequestStatus::Submitted);
@@ -245,6 +268,11 @@ final class PurchaseRequestService
         }
     }
 
+    /**
+     * Ensure the given warehouse exists, if provided.
+     *
+     * @throws ValidationException if the warehouse is invalid
+     */
     private function assertWarehouse(?int $warehouseId): void
     {
         if ($warehouseId === null) {
@@ -258,6 +286,11 @@ final class PurchaseRequestService
         }
     }
 
+    /**
+     * Ensure the purchase request has at least one item.
+     *
+     * @throws ValidationException if the purchase request has no items
+     */
     private function assertHasItems(PurchaseRequest $purchaseRequest): void
     {
         if ($purchaseRequest->items()->count() === 0) {
@@ -267,6 +300,11 @@ final class PurchaseRequestService
         }
     }
 
+    /**
+     * Ensure the purchase request is in the expected status.
+     *
+     * @throws ValidationException if the purchase request status does not match
+     */
     private function assertStatus(PurchaseRequest $purchaseRequest, PurchaseRequestStatus $expected): void
     {
         if ($purchaseRequest->status !== $expected) {

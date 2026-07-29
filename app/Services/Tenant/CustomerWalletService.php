@@ -22,6 +22,9 @@ use Throwable;
  */
 final class CustomerWalletService
 {
+    /**
+     * Fetch the customer's wallet, creating a zero-balance one if it doesn't exist.
+     */
     public function ensureWallet(Customer $customer): CustomerWallet
     {
         /** @var CustomerWallet|null $wallet */
@@ -39,6 +42,9 @@ final class CustomerWalletService
         ]);
     }
 
+    /**
+     * Load the customer's wallet with its customer and ledger entries.
+     */
     public function find(Customer $customer): CustomerWallet
     {
         return $this->ensureWallet($customer)->loadMissing(['customer', 'ledgers']);
@@ -253,6 +259,9 @@ final class CustomerWalletService
         });
     }
 
+    /**
+     * Dispatch the wallet credited event for the current tenant.
+     */
     private function dispatchWalletCredited(CustomerWalletLedger $ledger): void
     {
         /** @var Tenant $tenant */
@@ -261,6 +270,9 @@ final class CustomerWalletService
         event(new WalletCredited($ledger, (string) $tenant->getTenantKey()));
     }
 
+    /**
+     * Dispatch the wallet debited event for the current tenant.
+     */
     private function dispatchWalletDebited(CustomerWalletLedger $ledger): void
     {
         /** @var Tenant $tenant */

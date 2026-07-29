@@ -56,6 +56,9 @@ final class BrandService
         ]);
     }
 
+    /**
+     * Load a single brand with its product count.
+     */
     public function find(Brand $brand): Brand
     {
         return $brand->loadCount('products');
@@ -71,6 +74,9 @@ final class BrandService
         return $brand->refresh();
     }
 
+    /**
+     * Delete a brand.
+     */
     public function delete(Brand $brand): void
     {
         $brand->delete();

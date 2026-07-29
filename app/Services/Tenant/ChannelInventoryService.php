@@ -79,6 +79,9 @@ final class ChannelInventoryService
         return $inventory->load(['product', 'warehouse']);
     }
 
+    /**
+     * Delete a channel inventory row.
+     */
     public function delete(ChannelInventory $inventory): void
     {
         $inventory->delete();
@@ -110,6 +113,11 @@ final class ChannelInventoryService
         return max(0, $onHand - $buffer);
     }
 
+    /**
+     * Ensure the requested quantity does not exceed the channel's available-to-promise stock.
+     *
+     * @throws ValidationException
+     */
     public function assertAvailable(Channel $channel, Product $product, int $quantity, ?int $warehouseId = null): void
     {
         $available = $this->availableQuantity($channel, $product, $warehouseId);

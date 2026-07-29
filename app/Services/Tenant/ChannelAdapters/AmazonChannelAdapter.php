@@ -15,11 +15,17 @@ use RuntimeException;
 
 final class AmazonChannelAdapter extends AbstractMarketplaceHttpAdapter implements ChannelAdapter
 {
+    /**
+     * The adapter key identifying this marketplace integration.
+     */
     public function key(): string
     {
         return ChannelAdapterKey::Amazon->value;
     }
 
+    /**
+     * Sync published channel inventory rows with Amazon (logs a stub when credentials are missing).
+     */
     public function syncInventory(Channel $channel): int
     {
         if ($this->clientId($channel) === null) {
@@ -34,6 +40,12 @@ final class AmazonChannelAdapter extends AbstractMarketplaceHttpAdapter implemen
         return $count;
     }
 
+    /**
+     * Pull recent orders from Amazon and return the count retrieved.
+     *
+     * @throws RequestException
+     * @throws ConnectionException
+     */
     public function pullOrders(Channel $channel): int
     {
         if ($this->clientId($channel) === null) {

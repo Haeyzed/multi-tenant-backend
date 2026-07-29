@@ -70,6 +70,9 @@ final class EmployeeService
         ]);
     }
 
+    /**
+     * Load an employee with its linked user relation.
+     */
     public function find(Employee $employee): Employee
     {
         return $employee->load('user');
@@ -89,11 +92,19 @@ final class EmployeeService
         return $employee->refresh()->load('user');
     }
 
+    /**
+     * Delete an employee record.
+     */
     public function delete(Employee $employee): void
     {
         $employee->delete();
     }
 
+    /**
+     * Ensure the given user id, when provided, references an existing user.
+     *
+     * @throws ModelNotFoundException if the user id does not exist
+     */
     private function assertUserExists(?int $userId): void
     {
         if ($userId === null) {

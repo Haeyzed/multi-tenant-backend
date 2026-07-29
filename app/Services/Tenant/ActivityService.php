@@ -39,6 +39,9 @@ final class ActivityService
             ->appends(request()->query());
     }
 
+    /**
+     * Load a single activity log entry with its subject and causer.
+     */
     public function find(Activity $activity): Activity
     {
         return $activity->loadMissing(['subject', 'causer']);

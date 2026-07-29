@@ -124,6 +124,9 @@ final class ReturnAuthorizationService
         });
     }
 
+    /**
+     * Load the return authorization with its related order, customer, warehouse, invoice, credit note, and items.
+     */
     public function find(ReturnAuthorization $returnAuthorization): ReturnAuthorization
     {
         return $returnAuthorization->loadMissing([
@@ -190,6 +193,11 @@ final class ReturnAuthorizationService
         });
     }
 
+    /**
+     * Delete a draft return authorization.
+     *
+     * @throws ValidationException if the return authorization is not in draft status
+     */
     public function delete(ReturnAuthorization $returnAuthorization): void
     {
         $this->assertStatus($returnAuthorization, ReturnAuthorizationStatus::Draft);
@@ -413,6 +421,11 @@ final class ReturnAuthorizationService
         });
     }
 
+    /**
+     * Mark an inspected return as repaired.
+     *
+     * @throws ValidationException if the return authorization is not in inspected status
+     */
     public function repair(ReturnAuthorization $returnAuthorization): ReturnAuthorization
     {
         $this->assertStatus($returnAuthorization, ReturnAuthorizationStatus::Inspected);
@@ -425,6 +438,11 @@ final class ReturnAuthorizationService
         return $this->find($returnAuthorization->refresh());
     }
 
+    /**
+     * Cancel a return authorization that has not yet been received.
+     *
+     * @throws ValidationException if the return authorization is not draft, requested, or approved
+     */
     public function cancel(ReturnAuthorization $returnAuthorization): ReturnAuthorization
     {
         if (! in_array($returnAuthorization->status, [
@@ -513,6 +531,11 @@ final class ReturnAuthorizationService
         return $lines;
     }
 
+    /**
+     * Ensure the given warehouse exists.
+     *
+     * @throws ValidationException if the warehouse is invalid
+     */
     private function assertWarehouse(int $warehouseId): void
     {
         if (! Warehouse::query()->whereKey($warehouseId)->exists()) {
@@ -522,6 +545,11 @@ final class ReturnAuthorizationService
         }
     }
 
+    /**
+     * Ensure the sales invoice belongs to the given order.
+     *
+     * @throws ValidationException if the invoice does not belong to the order
+     */
     private function assertInvoiceBelongsToOrder(int $salesInvoiceId, int $orderId): void
     {
         $exists = SalesInvoice::query()
@@ -536,6 +564,11 @@ final class ReturnAuthorizationService
         }
     }
 
+    /**
+     * Ensure the return authorization has at least one item.
+     *
+     * @throws ValidationException if the return authorization has no items
+     */
     private function assertHasItems(ReturnAuthorization $returnAuthorization): void
     {
         if ($returnAuthorization->items()->count() === 0) {
@@ -545,6 +578,11 @@ final class ReturnAuthorizationService
         }
     }
 
+    /**
+     * Ensure the return authorization is in the expected status.
+     *
+     * @throws ValidationException if the return authorization status does not match
+     */
     private function assertStatus(ReturnAuthorization $returnAuthorization, ReturnAuthorizationStatus $expected): void
     {
         if ($returnAuthorization->status !== $expected) {

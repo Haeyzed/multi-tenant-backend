@@ -88,6 +88,9 @@ final class TransferService
         });
     }
 
+    /**
+     * Load the transfer with its related items, warehouses, requester, and approver.
+     */
     public function find(WarehouseTransfer $transfer): WarehouseTransfer
     {
         return $transfer->load([
@@ -143,6 +146,11 @@ final class TransferService
         });
     }
 
+    /**
+     * Delete a draft warehouse transfer.
+     *
+     * @throws ValidationException if the transfer is not in draft status
+     */
     public function delete(WarehouseTransfer $transfer): void
     {
         $this->assertStatus($transfer, WarehouseTransferStatus::Draft);
@@ -350,6 +358,11 @@ final class TransferService
         }
     }
 
+    /**
+     * Ensure the given bin belongs to the expected warehouse, if provided.
+     *
+     * @throws ValidationException if the bin does not belong to the warehouse
+     */
     private function assertBinBelongsToWarehouse(?int $binId, int $warehouseId, string $field): void
     {
         if ($binId === null) {
@@ -368,6 +381,11 @@ final class TransferService
         }
     }
 
+    /**
+     * Ensure the source and destination warehouses differ and both exist.
+     *
+     * @throws ValidationException if the warehouses match or either is invalid
+     */
     private function assertDistinctWarehouses(int $sourceId, int $destinationId): void
     {
         if ($sourceId === $destinationId) {
@@ -389,6 +407,11 @@ final class TransferService
         }
     }
 
+    /**
+     * Ensure the transfer has at least one item.
+     *
+     * @throws ValidationException if the transfer has no items
+     */
     private function assertHasItems(WarehouseTransfer $transfer): void
     {
         if ($transfer->items()->count() === 0) {
@@ -398,6 +421,11 @@ final class TransferService
         }
     }
 
+    /**
+     * Ensure the transfer is in the expected status.
+     *
+     * @throws ValidationException if the transfer status does not match
+     */
     private function assertStatus(WarehouseTransfer $transfer, WarehouseTransferStatus $expected): void
     {
         if ($transfer->status !== $expected) {

@@ -55,6 +55,9 @@ final class CustomerGroupService
         ]);
     }
 
+    /**
+     * Load a single customer group with its customer count.
+     */
     public function find(CustomerGroup $group): CustomerGroup
     {
         return $group->loadCount('customers');
@@ -74,6 +77,9 @@ final class CustomerGroupService
         return $group->refresh();
     }
 
+    /**
+     * Delete a customer group.
+     */
     public function delete(CustomerGroup $group): void
     {
         $group->delete();

@@ -89,6 +89,9 @@ final class ShippingMethodService
         ])->load(['carrier', 'zone']);
     }
 
+    /**
+     * Load the shipping method with its related carrier and zone.
+     */
     public function find(ShippingMethod $method): ShippingMethod
     {
         return $method->loadMissing(['carrier', 'zone']);
@@ -128,11 +131,19 @@ final class ShippingMethodService
         return $this->find($method->refresh());
     }
 
+    /**
+     * Delete a shipping method.
+     */
     public function delete(ShippingMethod $method): void
     {
         $method->delete();
     }
 
+    /**
+     * Ensure the given shipping carrier exists.
+     *
+     * @throws ValidationException if the carrier is invalid
+     */
     private function assertCarrier(int $carrierId): void
     {
         if (! ShippingCarrier::query()->whereKey($carrierId)->exists()) {
@@ -142,6 +153,11 @@ final class ShippingMethodService
         }
     }
 
+    /**
+     * Ensure the given shipping zone exists.
+     *
+     * @throws ValidationException if the zone is invalid
+     */
     private function assertZone(int $zoneId): void
     {
         if (! ShippingZone::query()->whereKey($zoneId)->exists()) {

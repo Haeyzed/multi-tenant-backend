@@ -36,6 +36,9 @@ final class BusinessSettingService
             ->appends(request()->query());
     }
 
+    /**
+     * Find a single business setting by its key.
+     */
     public function findByKey(string $key): BusinessSetting
     {
         return BusinessSetting::query()->where('key', $key)->firstOrFail();
@@ -74,6 +77,9 @@ final class BusinessSettingService
         return $setting->refresh();
     }
 
+    /**
+     * Delete a business setting.
+     */
     public function delete(BusinessSetting $setting): void
     {
         $setting->delete();
@@ -91,6 +97,9 @@ final class BusinessSettingService
             ->all();
     }
 
+    /**
+     * Encode a raw value into its stored string representation for the given type.
+     */
     private function encodeValue(mixed $value, string $type): ?string
     {
         if ($value === null) {

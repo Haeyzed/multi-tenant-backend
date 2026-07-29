@@ -22,11 +22,21 @@ use RuntimeException;
  */
 final class PaystackPaymentGateway implements PaymentGateway
 {
+    /**
+     * Identify this driver as the Paystack billing gateway.
+     */
     public function name(): BillingGateway
     {
         return BillingGateway::Paystack;
     }
 
+    /**
+     * Create (or reuse) a Paystack customer and subscribe them to the given plan.
+     *
+     * @param  array<string, mixed>  $options
+     *
+     * @throws RuntimeException if the price has no Paystack plan code, if not configured, or if the request fails
+     */
     public function createSubscription(
         Tenant $tenant,
         PlanPrice $price,
@@ -67,6 +77,9 @@ final class PaystackPaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * @throws RuntimeException if not configured, if the subscription is missing its email_token, or if the request fails
+     */
     public function cancelSubscription(Subscription $subscription, bool $atPeriodEnd = true): GatewaySubscriptionResult
     {
         $this->ensureConfigured();
@@ -95,6 +108,9 @@ final class PaystackPaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * @throws RuntimeException if not configured, if the subscription is missing its email_token, or if the request fails
+     */
     public function resumeSubscription(Subscription $subscription): GatewaySubscriptionResult
     {
         $this->ensureConfigured();
@@ -121,6 +137,11 @@ final class PaystackPaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Cancel the current Paystack subscription and create a new one on the given plan.
+     *
+     * @throws RuntimeException if the new price has no Paystack plan code, if not configured, or if a request fails
+     */
     public function changePlan(Subscription $subscription, PlanPrice $newPrice): GatewaySubscriptionResult
     {
         $this->ensureConfigured();
@@ -146,6 +167,10 @@ final class PaystackPaymentGateway implements PaymentGateway
         );
     }
 
+    /**
+     * Verify the `x-paystack-signature` header against an HMAC-SHA512 of the request body.
+     * Returns true only in non-production environments when no secret is configured.
+     */
     public function verifyWebhookSignature(Request $request): bool
     {
         $secret = (string) config('billing.gateways.paystack.secret', '');
@@ -159,6 +184,9 @@ final class PaystackPaymentGateway implements PaymentGateway
         return hash_equals(hash_hmac('sha512', $request->getContent(), $secret), $signature);
     }
 
+    /**
+     * @return array{id: string, type: string, payload: array<string, mixed>}
+     */
     public function parseWebhook(Request $request): array
     {
         /** @var array<string, mixed> $payload */
@@ -185,6 +213,9 @@ final class PaystackPaymentGateway implements PaymentGateway
         return 'tenant+'.$tenant->getTenantKey().'@billing.local';
     }
 
+    /**
+     * @throws RuntimeException if the Paystack secret key is not configured
+     */
     private function ensureConfigured(): void
     {
         if ((string) config('billing.gateways.paystack.secret', '') === '') {

@@ -52,6 +52,12 @@ final class SubscriptionLifecycleService
         return $result;
     }
 
+    /**
+     * Notify tenant admins for trialing subscriptions ending within the configured lead time,
+     * skipping subscriptions already notified.
+     *
+     * @return int number of subscriptions notified
+     */
     private function notifyTrialsEndingSoon(): int
     {
         $count = 0;
@@ -82,6 +88,12 @@ final class SubscriptionLifecycleService
         return $count;
     }
 
+    /**
+     * Activate trialing subscriptions whose trial has ended, cancelling those flagged for
+     * cancellation at period end instead.
+     *
+     * @return int number of subscriptions transitioned
+     */
     private function activateEndedTrials(): int
     {
         $count = 0;
@@ -112,6 +124,12 @@ final class SubscriptionLifecycleService
         return $count;
     }
 
+    /**
+     * Renew active Fake-gateway subscriptions whose current period has elapsed and are not
+     * pending cancellation.
+     *
+     * @return int number of subscriptions renewed
+     */
     private function renewDueFakeSubscriptions(): int
     {
         $count = 0;
@@ -147,6 +165,12 @@ final class SubscriptionLifecycleService
         return $count;
     }
 
+    /**
+     * Mark open invoices as paid for Fake-gateway subscriptions that are active or past their
+     * trial, activating any subscription still marked as trialing.
+     *
+     * @return int number of invoices settled
+     */
     private function settleFakeOpenInvoices(): int
     {
         $count = 0;
@@ -182,6 +206,11 @@ final class SubscriptionLifecycleService
         return $count;
     }
 
+    /**
+     * Move past-due subscriptions whose access window has ended into the grace period.
+     *
+     * @return int number of subscriptions transitioned
+     */
     private function enterGraceFromPastDue(): int
     {
         $count = 0;
@@ -199,6 +228,11 @@ final class SubscriptionLifecycleService
         return $count;
     }
 
+    /**
+     * Suspend subscriptions whose grace period has elapsed.
+     *
+     * @return int number of subscriptions suspended
+     */
     private function suspendEndedGrace(): int
     {
         $count = 0;
@@ -216,6 +250,12 @@ final class SubscriptionLifecycleService
         return $count;
     }
 
+    /**
+     * Cancel active or trialing subscriptions past their end date that are flagged for
+     * cancellation at period end or already cancelled.
+     *
+     * @return int number of subscriptions expired
+     */
     private function expireEndedSubscriptions(): int
     {
         $count = 0;

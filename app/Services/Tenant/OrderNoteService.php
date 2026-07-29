@@ -64,12 +64,18 @@ final class OrderNoteService
         return $note->refresh()->load('author');
     }
 
+    /**
+     * Delete a note belonging to the given order.
+     */
     public function delete(Order $order, OrderNote $note): void
     {
         $this->assertBelongsToOrder($note, $order);
         $note->delete();
     }
 
+    /**
+     * Ensure a note belongs to the given order, aborting with a 404 otherwise.
+     */
     private function assertBelongsToOrder(OrderNote $note, Order $order): void
     {
         if ($note->order_id !== $order->id) {

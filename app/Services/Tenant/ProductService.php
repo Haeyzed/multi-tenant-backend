@@ -113,6 +113,9 @@ final class ProductService
         return $product;
     }
 
+    /**
+     * Load a product with its category, brand, variant, translation, and related relations.
+     */
     public function find(Product $product): Product
     {
         return $product->load([
@@ -158,11 +161,18 @@ final class ProductService
         return $product->refresh();
     }
 
+    /**
+     * Delete a product.
+     */
     public function delete(Product $product): void
     {
         $product->delete();
     }
 
+    /**
+     * Generate a unique product slug from a name, appending an incrementing suffix on
+     * collision, optionally ignoring a given product id (for updates).
+     */
     private function generateUniqueSlug(string $name, ?int $ignoreId = null): string
     {
         $base = Str::slug($name) ?: 'product';
@@ -180,11 +190,17 @@ final class ProductService
         return $slug;
     }
 
+    /**
+     * Normalize a product status value, converting a string to its backing enum case.
+     */
     private function resolveStatus(ProductStatus|string $status): ProductStatus
     {
         return is_string($status) ? ProductStatus::from($status) : $status;
     }
 
+    /**
+     * Normalize a product type value, converting a string to its backing enum case.
+     */
     private function resolveType(ProductType|string $type): ProductType
     {
         return is_string($type) ? ProductType::from($type) : $type;

@@ -57,6 +57,9 @@ final class AttributeService
         ]);
     }
 
+    /**
+     * Load a single attribute group with its attributes, values, and attribute count.
+     */
     public function findGroup(AttributeGroup $group): AttributeGroup
     {
         return $group->load(['attributes.values'])->loadCount('attributes');
@@ -72,6 +75,9 @@ final class AttributeService
         return $group->refresh();
     }
 
+    /**
+     * Delete an attribute group.
+     */
     public function deleteGroup(AttributeGroup $group): void
     {
         $group->delete();
@@ -118,6 +124,9 @@ final class AttributeService
         ]);
     }
 
+    /**
+     * Load a single attribute with its group and values.
+     */
     public function findAttribute(Attribute $attribute): Attribute
     {
         return $attribute->load(['group', 'values']);
@@ -133,6 +142,9 @@ final class AttributeService
         return $attribute->refresh()->load(['group', 'values']);
     }
 
+    /**
+     * Delete an attribute.
+     */
     public function deleteAttribute(Attribute $attribute): void
     {
         $attribute->delete();
@@ -172,6 +184,9 @@ final class AttributeService
         ]);
     }
 
+    /**
+     * Load a single attribute value with its parent attribute.
+     */
     public function findValue(AttributeValue $value): AttributeValue
     {
         return $value->load('attribute');
@@ -187,6 +202,9 @@ final class AttributeService
         return $value->refresh()->load('attribute');
     }
 
+    /**
+     * Delete an attribute value.
+     */
     public function deleteValue(AttributeValue $value): void
     {
         $value->delete();

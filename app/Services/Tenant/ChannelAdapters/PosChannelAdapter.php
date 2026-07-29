@@ -17,11 +17,17 @@ final class PosChannelAdapter implements ChannelAdapter
 {
     public function __construct(private ChannelInventoryService $inventories) {}
 
+    /**
+     * The adapter key identifying the local POS integration.
+     */
     public function key(): string
     {
         return 'pos';
     }
 
+    /**
+     * Recompute and persist each published inventory row's available quantity.
+     */
     public function syncInventory(Channel $channel): int
     {
         $rows = $channel->inventories()->where('is_published', true)->with('product')->get();
@@ -39,16 +45,25 @@ final class PosChannelAdapter implements ChannelAdapter
         return $synced;
     }
 
+    /**
+     * No-op: POS orders are created locally, not pulled from an external source.
+     */
     public function pullOrders(Channel $channel): int
     {
         return 0;
     }
 
+    /**
+     * No-op: local POS orders are already acknowledged at the point of sale.
+     */
     public function acknowledgeOrder(Channel $channel, string $externalId): void
     {
         // Local POS orders are already acknowledged at the point of sale.
     }
 
+    /**
+     * Publish (or refresh) a product's available quantity into channel inventory.
+     */
     public function publishProduct(Channel $channel, Product $product): void
     {
         $warehouseId = $channel->warehouse_id;

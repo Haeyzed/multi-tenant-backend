@@ -6,6 +6,7 @@ namespace App\Services\Central;
 
 use App\Models\Central\PlatformSetting;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Cache;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;
@@ -38,6 +39,9 @@ final class PlatformSettingService
             ->appends(request()->query());
     }
 
+    /**
+     * @throws ModelNotFoundException if no setting exists for the given key
+     */
     public function findByKey(string $key): PlatformSetting
     {
         return PlatformSetting::query()->where('key', $key)->firstOrFail();
@@ -84,12 +88,18 @@ final class PlatformSettingService
         return $setting->refresh();
     }
 
+    /**
+     * Remove the given setting and evict its cached value.
+     */
     public function delete(PlatformSetting $setting): void
     {
         Cache::forget($this->cacheKey($setting->key));
         $setting->delete();
     }
 
+    /**
+     * Resolve the decoded value for the given key, caching it forever until the setting is upserted or deleted.
+     */
     public function get(string $key, mixed $default = null): mixed
     {
         return Cache::rememberForever($this->cacheKey($key), function () use ($key, $default): mixed {
@@ -99,6 +109,11 @@ final class PlatformSettingService
         });
     }
 
+    /**
+     * Encode a raw value into its stored string representation for the given setting type.
+     *
+     * @throws \JsonException if a non-string `json` value cannot be encoded
+     */
     private function encodeValue(mixed $value, string $type): ?string
     {
         if ($value === null) {
@@ -113,6 +128,9 @@ final class PlatformSettingService
         };
     }
 
+    /**
+     * Build the cache key used to store a setting's decoded value.
+     */
     private function cacheKey(string $key): string
     {
         return 'platform_setting:'.$key;

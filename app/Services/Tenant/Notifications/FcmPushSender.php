@@ -18,6 +18,8 @@ final class FcmPushSender implements PushSender
     public function __construct(private ?Messaging $messaging = null) {}
 
     /**
+     * Send a push notification to a device via Firebase Cloud Messaging.
+     *
      * @param  array<string, mixed>  $data
      */
     public function send(string $deviceToken, string $title, string $body, array $data = []): void
@@ -39,6 +41,11 @@ final class FcmPushSender implements PushSender
         }
     }
 
+    /**
+     * Resolve the Firebase messaging client, creating one from configured credentials if needed.
+     *
+     * @throws RuntimeException if the Firebase credentials file is not configured
+     */
     private function messaging(): Messaging
     {
         if ($this->messaging instanceof Messaging) {

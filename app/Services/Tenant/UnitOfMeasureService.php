@@ -54,6 +54,9 @@ final class UnitOfMeasureService
         ]);
     }
 
+    /**
+     * Load the unit of measure with its product UOMs count.
+     */
     public function find(UnitOfMeasure $unitOfMeasure): UnitOfMeasure
     {
         return $unitOfMeasure->loadCount('productUoms');
@@ -69,6 +72,9 @@ final class UnitOfMeasureService
         return $unitOfMeasure->refresh();
     }
 
+    /**
+     * Delete a unit of measure.
+     */
     public function delete(UnitOfMeasure $unitOfMeasure): void
     {
         $unitOfMeasure->delete();
@@ -120,6 +126,9 @@ final class UnitOfMeasureService
         return $productUom->refresh()->load('unitOfMeasure');
     }
 
+    /**
+     * Detach a unit of measure from a product.
+     */
     public function detachProductUom(ProductUom $productUom): void
     {
         $productUom->delete();

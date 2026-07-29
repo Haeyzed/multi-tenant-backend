@@ -88,6 +88,9 @@ final class SupplierService
         return $this->find($supplier->refresh());
     }
 
+    /**
+     * Load the supplier with its related products and group.
+     */
     public function find(Supplier $supplier): Supplier
     {
         return $supplier->load(['products.product', 'group']);
@@ -137,6 +140,9 @@ final class SupplierService
         return $this->find($supplier->refresh());
     }
 
+    /**
+     * Delete a supplier.
+     */
     public function delete(Supplier $supplier): void
     {
         $supplier->delete();
@@ -177,6 +183,9 @@ final class SupplierService
         }
     }
 
+    /**
+     * Generate a random unique-looking supplier code.
+     */
     private function generateCode(): string
     {
         return 'SUP-'.Str::upper(Str::random(8));

@@ -112,17 +112,30 @@ final class WorkOrderService
         });
     }
 
+    /**
+     * Load the work order with its related product, warehouse, BOM, and component items.
+     */
     public function find(WorkOrder $workOrder): WorkOrder
     {
         return $workOrder->loadMissing(['product', 'warehouse', 'billOfMaterial', 'items.componentProduct']);
     }
 
+    /**
+     * Delete a draft work order.
+     *
+     * @throws ValidationException if the work order is not in draft status
+     */
     public function delete(WorkOrder $workOrder): void
     {
         $this->assertStatus($workOrder, WorkOrderStatus::Draft);
         $workOrder->delete();
     }
 
+    /**
+     * Release a draft work order for production.
+     *
+     * @throws ValidationException if the work order is not in draft status
+     */
     public function release(WorkOrder $workOrder): WorkOrder
     {
         $this->assertStatus($workOrder, WorkOrderStatus::Draft);
@@ -183,6 +196,11 @@ final class WorkOrderService
         });
     }
 
+    /**
+     * Cancel a draft or released work order.
+     *
+     * @throws ValidationException if the work order is not draft or released
+     */
     public function cancel(WorkOrder $workOrder): WorkOrder
     {
         if (! in_array($workOrder->status, [WorkOrderStatus::Draft, WorkOrderStatus::Released], true)) {
@@ -199,6 +217,11 @@ final class WorkOrderService
         return $this->find($workOrder->refresh());
     }
 
+    /**
+     * Ensure the work order is in the expected status.
+     *
+     * @throws ValidationException if the work order status does not match
+     */
     private function assertStatus(WorkOrder $workOrder, WorkOrderStatus $expected): void
     {
         if ($workOrder->status !== $expected) {

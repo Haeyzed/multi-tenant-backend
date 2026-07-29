@@ -99,6 +99,9 @@ final class PriceListService
         });
     }
 
+    /**
+     * Load a price list with its items, product, and assignment relations, plus its item count.
+     */
     public function find(PriceList $priceList): PriceList
     {
         return $priceList->load(['items.product', 'assignments'])->loadCount('items');
@@ -155,6 +158,9 @@ final class PriceListService
         });
     }
 
+    /**
+     * Delete a price list.
+     */
     public function delete(PriceList $priceList): void
     {
         $priceList->delete();
@@ -226,6 +232,11 @@ final class PriceListService
         }
     }
 
+    /**
+     * Ensure the referenced assignable record (customer, customer group, or channel) exists.
+     *
+     * @throws ValidationException if the assignable record does not exist
+     */
     private function assertAssignableExists(PriceListAssignmentType $type, int $id, int $index): void
     {
         $exists = match ($type) {
@@ -241,6 +252,9 @@ final class PriceListService
         }
     }
 
+    /**
+     * Clear the default flag on other price lists sharing the same currency.
+     */
     private function unsetOtherDefaults(PriceList $list): void
     {
         PriceList::query()

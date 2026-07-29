@@ -32,6 +32,8 @@ use Illuminate\Support\Facades\DB;
 final class ReportService
 {
     /**
+     * Summarize order counts and revenue over a date range, grouped by status.
+     *
      * @return array{
      *     from: string|null,
      *     to: string|null,
@@ -76,6 +78,8 @@ final class ReportService
     }
 
     /**
+     * List the best-selling products by quantity within a date range.
+     *
      * @return list<array{product_id: int, product_sku: string, product_name: string, quantity_sold: int, revenue: int}>
      */
     public function topProducts(?Carbon $from = null, ?Carbon $to = null, int $limit = 10): array
@@ -115,6 +119,8 @@ final class ReportService
     }
 
     /**
+     * List on-hand inventory quantity and valuation per product, optionally scoped to a warehouse.
+     *
      * @return list<array{product_id: int, sku: string, name: string, quantity: int, average_cost: int|null, valuation: int}>
      */
     public function inventoryValuation(?int $warehouseId = null): array
@@ -154,6 +160,8 @@ final class ReportService
     }
 
     /**
+     * List products whose on-hand quantity is at or below their reorder point.
+     *
      * @return list<array{
      *     product_id: int,
      *     sku: string,
@@ -265,6 +273,8 @@ final class ReportService
     }
 
     /**
+     * List stock lots ordered by receipt date to surface ageing/expiring inventory.
+     *
      * @return list<array{
      *     product_id: int,
      *     sku: string,
@@ -326,6 +336,8 @@ final class ReportService
     }
 
     /**
+     * Summarize purchase order counts and totals over a date range, grouped by status.
+     *
      * @return array{
      *     from: string|null,
      *     to: string|null,
@@ -380,6 +392,8 @@ final class ReportService
     }
 
     /**
+     * Bucket outstanding supplier invoices by days overdue (accounts payable aging).
+     *
      * @return array{
      *     as_of: string,
      *     total_outstanding: int,
@@ -475,6 +489,8 @@ final class ReportService
     }
 
     /**
+     * Bucket outstanding sales invoices by days overdue (accounts receivable aging).
+     *
      * @return array{
      *     as_of: string,
      *     total_outstanding: int,
@@ -559,6 +575,8 @@ final class ReportService
     }
 
     /**
+     * Summarize per-customer order counts, revenue, and open accounts receivable.
+     *
      * @return array{
      *     from: string|null,
      *     to: string|null,
@@ -640,6 +658,8 @@ final class ReportService
     }
 
     /**
+     * Summarize SKU count, stock quantities, and valuation for a warehouse (or all warehouses).
+     *
      * @return array{
      *     warehouse_id: int|null,
      *     sku_count: int,
@@ -678,6 +698,8 @@ final class ReportService
     }
 
     /**
+     * List open purchase order lines expected to arrive, grouped by product and warehouse.
+     *
      * @return array{
      *     as_of: string|null,
      *     warehouse_id: int|null,
@@ -765,6 +787,8 @@ final class ReportService
     }
 
     /**
+     * Project future demand and suggest reorder quantities from recent sales velocity.
+     *
      * @return array{
      *     from: string|null,
      *     to: string|null,

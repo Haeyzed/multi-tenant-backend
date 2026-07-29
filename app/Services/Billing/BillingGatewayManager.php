@@ -18,6 +18,11 @@ use InvalidArgumentException;
  */
 final class BillingGatewayManager
 {
+    /**
+     * Resolve the driver for the given gateway, defaulting to the configured gateway.
+     *
+     * @throws ValidationException if the resolved gateway is not enabled
+     */
     public function driver(?BillingGateway $gateway = null): PaymentGateway
     {
         $gateway ??= BillingGateway::tryFrom((string) config('billing.default_gateway', 'fake'))
@@ -49,6 +54,9 @@ final class BillingGatewayManager
         return array_values(array_filter($configured, static fn (string $value): bool => $value !== ''));
     }
 
+    /**
+     * @throws ValidationException if the gateway is not in the enabled gateways list
+     */
     public function assertEnabled(BillingGateway $gateway): void
     {
         if (! in_array($gateway->value, $this->enabledGateways(), true)) {

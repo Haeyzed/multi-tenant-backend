@@ -127,6 +127,12 @@ final class SubscriptionService
         });
     }
 
+    /**
+     * Cancel the subscription via its gateway, either scheduling cancellation for the end of the
+     * current period or cancelling immediately.
+     *
+     * @throws ValidationException if the subscription does not grant access
+     */
     public function cancel(Subscription $subscription, bool $atPeriodEnd = true): Subscription
     {
         if (! $subscription->grantsAccess()) {
@@ -173,6 +179,12 @@ final class SubscriptionService
         return $subscription->load(['plan.features', 'planPrice', 'items']);
     }
 
+    /**
+     * Resume a scheduled-cancel, cancelled, past-due, grace, or suspended subscription via its
+     * gateway, restoring active (or trialing) status.
+     *
+     * @throws ValidationException if the subscription is not eligible to be resumed
+     */
     public function resume(Subscription $subscription): Subscription
     {
         $scheduledCancel = $subscription->grantsAccess()
@@ -229,6 +241,9 @@ final class SubscriptionService
         return $subscription->load(['plan.features', 'planPrice', 'items']);
     }
 
+    /**
+     * Suspend the subscription locally, recording the reason. No-op if already suspended.
+     */
     public function suspend(Subscription $subscription, string $reason = 'unpaid'): Subscription
     {
         if ($subscription->status === SubscriptionStatus::Suspended) {
@@ -494,6 +509,9 @@ final class SubscriptionService
         return $invoice->refresh()->load('payments');
     }
 
+    /**
+     * Resolve the subscription's current period end from its meta, if recorded.
+     */
     public function currentPeriodEnd(Subscription $subscription): ?Carbon
     {
         $value = data_get($subscription->meta, 'current_period_end');
@@ -505,6 +523,12 @@ final class SubscriptionService
         return Carbon::parse($value);
     }
 
+    /**
+     * Resolve and validate a redeemable coupon by code for the given currency.
+     * Returns null when no code is given.
+     *
+     * @throws ValidationException if the coupon is invalid, expired, or currency-mismatched
+     */
     private function resolveCoupon(?string $code, string $currency): ?Coupon
     {
         if ($code === null || $code === '') {
@@ -550,6 +574,10 @@ final class SubscriptionService
         ];
     }
 
+    /**
+     * Create the initial invoice for a new subscription, applying any coupon discount and
+     * settling it immediately (with a payment record) when eligible.
+     */
     private function createInitialInvoice(
         Tenant $tenant,
         Subscription $subscription,
@@ -608,6 +636,12 @@ final class SubscriptionService
         return $invoice;
     }
 
+    /**
+     * Create an open invoice for a subscription period (renewal or proration), defaulting the
+     * total to the price amount when not overridden.
+     *
+     * @param  array<string, mixed>  $meta
+     */
     private function createPeriodInvoice(
         Tenant $tenant,
         Subscription $subscription,
@@ -639,6 +673,11 @@ final class SubscriptionService
         ]);
     }
 
+    /**
+     * Create a proration invoice for a plan change based on the remaining time in the current
+     * period, settling it immediately for the Fake gateway or when the total is zero.
+     * Returns null when proration is disabled, the price is unchanged, or currencies differ.
+     */
     private function createProrationInvoice(
         Subscription $subscription,
         PlanPrice $fromPrice,
@@ -694,6 +733,10 @@ final class SubscriptionService
         return $invoice->refresh();
     }
 
+    /**
+     * Determine whether an invoice should be marked paid immediately: always for a zero total,
+     * never while on trial, otherwise only for the Fake gateway.
+     */
     private function shouldSettleInvoiceImmediately(BillingGateway $gateway, int $total, bool $onTrial): bool
     {
         if ($total === 0) {

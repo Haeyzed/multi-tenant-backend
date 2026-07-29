@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Log;
 final class LogPushSender implements PushSender
 {
     /**
+     * Record a push notification to the log instead of sending it to a real provider.
+     *
      * @param  array<string, mixed>  $data
      */
     public function send(string $deviceToken, string $title, string $body, array $data = []): void

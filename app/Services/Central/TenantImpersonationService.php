@@ -8,6 +8,7 @@ use App\Enums\Tenant\Role as TenantRole;
 use App\Models\Central\Tenant;
 use App\Models\Central\User as CentralUser;
 use App\Models\Tenant\User as TenantUser;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role as SpatieRole;
 
@@ -74,6 +75,12 @@ final class TenantImpersonationService
         ]);
     }
 
+    /**
+     * Resolve the tenant user to impersonate: the given id, or the first tenant admin.
+     *
+     * @throws ModelNotFoundException if the given tenant user id does not exist
+     * @throws ValidationException if the tenant admin role or a tenant admin user cannot be found
+     */
     private function resolveUser(?int $tenantUserId): TenantUser
     {
         if ($tenantUserId !== null) {

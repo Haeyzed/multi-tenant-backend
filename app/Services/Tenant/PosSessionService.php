@@ -94,6 +94,9 @@ final class PosSessionService
         ])->load(['channel', 'opener']);
     }
 
+    /**
+     * Load a POS session with its channel, opener, and closer relations, plus its order count.
+     */
     public function find(PosSession $session): PosSession
     {
         return $session->loadMissing(['channel', 'opener', 'closer'])->loadCount('orders');
@@ -146,6 +149,11 @@ final class PosSessionService
         });
     }
 
+    /**
+     * Ensure a POS session is open.
+     *
+     * @throws ValidationException if the session is not open
+     */
     private function assertOpen(PosSession $session): void
     {
         if ($session->status !== PosSessionStatus::Open) {

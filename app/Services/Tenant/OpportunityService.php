@@ -97,6 +97,9 @@ final class OpportunityService
         ])->load(['lead', 'customer', 'owner']);
     }
 
+    /**
+     * Load an opportunity with its lead, customer, owner, and activity relations.
+     */
     public function find(Opportunity $opportunity): Opportunity
     {
         return $opportunity->loadMissing(['lead', 'customer', 'owner', 'activities']);
@@ -138,6 +141,11 @@ final class OpportunityService
         return $this->find($opportunity->refresh());
     }
 
+    /**
+     * Delete an opportunity, provided it is still open.
+     *
+     * @throws ValidationException if the opportunity is not open
+     */
     public function delete(Opportunity $opportunity): void
     {
         if ($opportunity->status !== OpportunityStatus::Open) {
@@ -149,6 +157,11 @@ final class OpportunityService
         $opportunity->delete();
     }
 
+    /**
+     * Mark an open opportunity as won and close it with full probability.
+     *
+     * @throws ValidationException if the opportunity is not open
+     */
     public function markWon(Opportunity $opportunity): Opportunity
     {
         $this->assertOpen($opportunity);
@@ -163,6 +176,11 @@ final class OpportunityService
         return $this->find($opportunity->refresh());
     }
 
+    /**
+     * Mark an open opportunity as lost and close it with zero probability.
+     *
+     * @throws ValidationException if the opportunity is not open
+     */
     public function markLost(Opportunity $opportunity): Opportunity
     {
         $this->assertOpen($opportunity);
@@ -177,6 +195,11 @@ final class OpportunityService
         return $this->find($opportunity->refresh());
     }
 
+    /**
+     * Ensure an opportunity is open.
+     *
+     * @throws ValidationException if the opportunity is not open
+     */
     private function assertOpen(Opportunity $opportunity): void
     {
         if ($opportunity->status !== OpportunityStatus::Open) {
@@ -186,6 +209,11 @@ final class OpportunityService
         }
     }
 
+    /**
+     * Ensure the given user id references an existing user.
+     *
+     * @throws ValidationException if the user id does not exist
+     */
     private function assertUser(int $userId): void
     {
         if (! User::query()->whereKey($userId)->exists()) {

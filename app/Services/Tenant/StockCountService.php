@@ -52,6 +52,9 @@ final class StockCountService
             ->appends(request()->query());
     }
 
+    /**
+     * Load the stock count with its related warehouse, items, stock lots, and creator.
+     */
     public function find(StockCount $stockCount): StockCount
     {
         return $stockCount->load(['warehouse', 'items.product', 'items.stockLot', 'creator']);
@@ -219,6 +222,11 @@ final class StockCountService
         });
     }
 
+    /**
+     * Ensure the stock count is still draft or counting and can be modified.
+     *
+     * @throws ValidationException if the stock count cannot be edited in its current status
+     */
     private function assertEditable(StockCount $stockCount): void
     {
         if (! in_array($stockCount->status, [StockCountStatus::Draft, StockCountStatus::Counting], true)) {

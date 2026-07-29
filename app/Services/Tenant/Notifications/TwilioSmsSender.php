@@ -14,6 +14,9 @@ final class TwilioSmsSender implements SmsSender
     public function __construct(private ?Client $client = null) {}
 
     /**
+     * Send an SMS message via Twilio.
+     *
+     * @throws RuntimeException if the from number is not configured
      * @throws TwilioException
      */
     public function send(string $to, string $message): void
@@ -30,6 +33,11 @@ final class TwilioSmsSender implements SmsSender
         ]);
     }
 
+    /**
+     * Resolve the Twilio REST client, creating one from configured credentials if needed.
+     *
+     * @throws RuntimeException if the Twilio credentials are not configured
+     */
     private function client(): Client
     {
         if ($this->client instanceof Client) {

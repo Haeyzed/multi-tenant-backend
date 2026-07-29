@@ -15,11 +15,17 @@ use RuntimeException;
 
 final class EbayChannelAdapter extends AbstractMarketplaceHttpAdapter implements ChannelAdapter
 {
+    /**
+     * The adapter key identifying this marketplace integration.
+     */
     public function key(): string
     {
         return ChannelAdapterKey::Ebay->value;
     }
 
+    /**
+     * Sync published channel inventory rows with eBay (logs a stub when credentials are missing).
+     */
     public function syncInventory(Channel $channel): int
     {
         if ($this->clientId($channel) === null) {
