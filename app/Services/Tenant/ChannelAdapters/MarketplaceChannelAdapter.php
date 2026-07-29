@@ -10,7 +10,7 @@ use App\Models\Tenant\Product;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Stub marketplace adapter (Amazon/eBay/generic) — interface seam only; no live API calls.
+ * Stub marketplace adapter for the generic key — Amazon/eBay use dedicated HTTP adapters.
  */
 final class MarketplaceChannelAdapter implements ChannelAdapter
 {

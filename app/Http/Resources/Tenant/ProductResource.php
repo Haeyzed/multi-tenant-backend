@@ -6,6 +6,7 @@ namespace App\Http\Resources\Tenant;
 
 use App\Http\Resources\Resource;
 use App\Models\Tenant\Product;
+use App\Services\Tenant\StoreConfigService;
 use Dedoc\Scramble\Attributes\SchemaName;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,13 @@ class ProductResource extends Resource
      */
     public function toArray(Request $request): array
     {
+        $locale = $request->query('locale');
+        $locale = is_string($locale) && $locale !== ''
+            ? $locale
+            : app(StoreConfigService::class)->get()->toArray()['locale'];
+
+        $translation = is_string($locale) ? $this->resource->translation($locale) : null;
+
         return [
             'id' => $this->id,
             'category_id' => $this->category_id,
@@ -33,9 +41,9 @@ class ProductResource extends Resource
             'parent_id' => $this->parent_id,
             'unit_of_measure_id' => $this->unit_of_measure_id,
             'sku' => $this->sku,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->description,
+            'name' => $translation?->name ?? $this->name,
+            'slug' => $translation?->slug ?? $this->slug,
+            'description' => $translation?->description ?? $this->description,
             'currency' => $this->currency,
             'unit_price' => $this->unit_price,
             'average_cost' => $this->average_cost,
@@ -51,9 +59,10 @@ class ProductResource extends Resource
             'ean' => $this->ean,
             'isbn' => $this->isbn,
             'qr_code' => $this->qr_code,
-            'meta_title' => $this->meta_title,
-            'meta_description' => $this->meta_description,
+            'meta_title' => $translation?->meta_title ?? $this->meta_title,
+            'meta_description' => $translation?->meta_description ?? $this->meta_description,
             'meta_keywords' => $this->meta_keywords,
+            'locale' => $translation?->locale,
             'is_active' => $this->is_active,
             'published_at' => $this->published_at,
             'scheduled_at' => $this->scheduled_at,
@@ -68,6 +77,7 @@ class ProductResource extends Resource
             'options' => ProductOptionResource::collection($this->whenLoaded('options')),
             'variants' => ProductResource::collection($this->whenLoaded('variants')),
             'option_values' => ProductOptionValueResource::collection($this->whenLoaded('optionValues')),
+            'translations' => ProductTranslationResource::collection($this->whenLoaded('translations')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

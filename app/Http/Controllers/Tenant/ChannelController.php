@@ -109,4 +109,51 @@ class ChannelController extends Controller
         return (new ChannelResource($this->channels->publishProduct($channel, $product)))
             ->withMessage('Product published to channel successfully.');
     }
+
+    /**
+     * @operationId redirectChannelOAuth
+     */
+    #[PathParameter('channel', description: 'Channel ID.', type: 'integer', example: 1)]
+    public function oauthRedirect(Channel $channel): JsonResponse
+    {
+        $this->authorize('update', $channel);
+
+        $callbackUrl = url('/api/channels/oauth/'.($channel->adapter?->value ?? 'none').'/callback');
+
+        return ApiResponse::success(
+            data: $this->channels->oauthRedirect($channel, $callbackUrl),
+            message: 'Channel OAuth redirect URL generated successfully.',
+        );
+    }
+
+    /**
+     * @operationId handleChannelOAuthCallback
+     */
+    #[PathParameter('adapter', description: 'Marketplace adapter key.', type: 'string', example: 'amazon')]
+    public function oauthCallback(string $adapter): JsonResponse
+    {
+        $code = (string) request()->query('code', '');
+        $state = (string) request()->query('state', '');
+
+        $channel = $this->channels->oauthCallback($adapter, $code, $state);
+
+        return ApiResponse::success(
+            data: (new ChannelResource($channel))->resolve(),
+            message: 'Channel OAuth completed successfully.',
+        );
+    }
+
+    /**
+     * @operationId pullChannelOrders
+     */
+    #[PathParameter('channel', description: 'Channel ID.', type: 'integer', example: 1)]
+    public function pullOrders(Channel $channel): JsonResponse
+    {
+        $this->authorize('update', $channel);
+
+        return ApiResponse::success(
+            data: $this->channels->pullOrders($channel),
+            message: 'Channel orders pulled successfully.',
+        );
+    }
 }

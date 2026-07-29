@@ -34,9 +34,14 @@ use App\Services\Central\FeatureFlagService;
 use App\Services\Central\TenantApiQuotaService;
 use App\Services\Tenant\FifoCostService;
 use App\Services\Tenant\LifoCostService;
+use App\Services\Tenant\Notifications\FcmPushSender;
+use App\Services\Tenant\Notifications\LogPushSender;
 use App\Services\Tenant\Notifications\LogSmsSender;
 use App\Services\Tenant\Notifications\NullPushSender;
+use App\Services\Tenant\Notifications\TwilioSmsSender;
+use App\Services\Tenant\Shipping\EasyPostShippingLabelProvider;
 use App\Services\Tenant\Shipping\ManualShippingLabelProvider;
+use App\Services\Tenant\Shipping\NullShippingLabelProvider;
 use App\Services\Tenant\WeightedAverageCostService;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -58,9 +63,28 @@ class AppServiceProvider extends ServiceProvider
     {
         Scramble::ignoreDefaultRoutes();
 
-        $this->app->bind(ShippingLabelProvider::class, ManualShippingLabelProvider::class);
-        $this->app->bind(SmsSender::class, LogSmsSender::class);
-        $this->app->bind(PushSender::class, NullPushSender::class);
+        $this->app->bind(ShippingLabelProvider::class, function ($app): ShippingLabelProvider {
+            return match ((string) config('services.shipping_label.driver', 'manual')) {
+                'easypost' => $app->make(EasyPostShippingLabelProvider::class),
+                'null' => $app->make(NullShippingLabelProvider::class),
+                default => $app->make(ManualShippingLabelProvider::class),
+            };
+        });
+
+        $this->app->bind(SmsSender::class, function ($app): SmsSender {
+            return match ((string) config('services.sms.driver', 'log')) {
+                'twilio' => $app->make(TwilioSmsSender::class),
+                default => $app->make(LogSmsSender::class),
+            };
+        });
+
+        $this->app->bind(PushSender::class, function ($app): PushSender {
+            return match ((string) config('services.push.driver', 'null')) {
+                'fcm' => $app->make(FcmPushSender::class),
+                'log' => $app->make(LogPushSender::class),
+                default => $app->make(NullPushSender::class),
+            };
+        });
 
         $this->app->bind(InventoryValuationStrategy::class, function ($app): InventoryValuationStrategy {
             $flags = $app->make(FeatureFlagService::class);

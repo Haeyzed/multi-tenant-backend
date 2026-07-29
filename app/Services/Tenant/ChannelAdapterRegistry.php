@@ -7,6 +7,8 @@ namespace App\Services\Tenant;
 use App\Contracts\Tenant\ChannelAdapter;
 use App\Enums\Tenant\ChannelAdapterKey;
 use App\Models\Tenant\Channel;
+use App\Services\Tenant\ChannelAdapters\AmazonChannelAdapter;
+use App\Services\Tenant\ChannelAdapters\EbayChannelAdapter;
 use App\Services\Tenant\ChannelAdapters\MarketplaceChannelAdapter;
 use App\Services\Tenant\ChannelAdapters\NullChannelAdapter;
 use App\Services\Tenant\ChannelAdapters\PosChannelAdapter;
@@ -20,6 +22,8 @@ final class ChannelAdapterRegistry
     public function __construct(
         private NullChannelAdapter $nullAdapter,
         private PosChannelAdapter $posAdapter,
+        private AmazonChannelAdapter $amazonAdapter,
+        private EbayChannelAdapter $ebayAdapter,
     ) {}
 
     public function for(Channel $channel): ChannelAdapter
@@ -29,8 +33,8 @@ final class ChannelAdapterRegistry
         return match ($key) {
             ChannelAdapterKey::None => $this->nullAdapter,
             ChannelAdapterKey::Pos => $this->posAdapter,
-            ChannelAdapterKey::Amazon,
-            ChannelAdapterKey::Ebay,
+            ChannelAdapterKey::Amazon => $this->amazonAdapter,
+            ChannelAdapterKey::Ebay => $this->ebayAdapter,
             ChannelAdapterKey::Generic => new MarketplaceChannelAdapter($key->value),
         };
     }
@@ -46,8 +50,8 @@ final class ChannelAdapterRegistry
         return match ($enum) {
             ChannelAdapterKey::None => $this->nullAdapter,
             ChannelAdapterKey::Pos => $this->posAdapter,
-            ChannelAdapterKey::Amazon,
-            ChannelAdapterKey::Ebay,
+            ChannelAdapterKey::Amazon => $this->amazonAdapter,
+            ChannelAdapterKey::Ebay => $this->ebayAdapter,
             ChannelAdapterKey::Generic => new MarketplaceChannelAdapter($enum->value),
         };
     }

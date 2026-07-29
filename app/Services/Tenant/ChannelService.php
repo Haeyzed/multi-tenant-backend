@@ -23,7 +23,10 @@ use Throwable;
  */
 final class ChannelService
 {
-    public function __construct(private ChannelAdapterRegistry $adapters) {}
+    public function __construct(
+        private ChannelAdapterRegistry $adapters,
+        private ChannelOAuthService $oauth,
+    ) {}
 
     /**
      * @return LengthAwarePaginator<int, Channel>
@@ -74,6 +77,10 @@ final class ChannelService
         }
 
         return DB::transaction(function () use ($data): Channel {
+            if (isset($data['config']) && is_array($data['config'])) {
+                $data['config'] = $this->oauth->encryptSensitiveConfig($data['config']);
+            }
+
             /** @var Channel $channel */
             $channel = Channel::query()->create([
                 'name' => $data['name'],
@@ -122,6 +129,10 @@ final class ChannelService
         }
 
         return DB::transaction(function () use ($channel, $data): Channel {
+            if (isset($data['config']) && is_array($data['config'])) {
+                $data['config'] = $this->oauth->encryptSensitiveConfig($data['config']);
+            }
+
             $channel->fill($data)->save();
 
             if ($channel->is_default) {
@@ -135,6 +146,32 @@ final class ChannelService
     public function delete(Channel $channel): void
     {
         $channel->delete();
+    }
+
+    /**
+     * @return array{redirect_url: string}
+     */
+    public function oauthRedirect(Channel $channel, string $callbackUrl): array
+    {
+        return [
+            'redirect_url' => $this->oauth->redirectUrl($channel, $callbackUrl),
+        ];
+    }
+
+    public function oauthCallback(string $adapter, string $code, string $state): Channel
+    {
+        return $this->find($this->oauth->handleCallback($adapter, $code, $state));
+    }
+
+    public function pullOrders(Channel $channel): array
+    {
+        $pulled = $this->adapters->for($channel)->pullOrders($channel);
+
+        return [
+            'channel_id' => $channel->id,
+            'adapter' => ($channel->adapter ?? ChannelAdapterKey::None)->value,
+            'pulled' => $pulled,
+        ];
     }
 
     public function syncInventory(Channel $channel): array

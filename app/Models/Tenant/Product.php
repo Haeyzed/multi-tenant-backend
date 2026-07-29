@@ -69,6 +69,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read EloquentCollection<int, Media> $media
  * @property-read EloquentCollection<int, ProductUom> $productUoms
  * @property-read EloquentCollection<int, ProductOptionValue> $optionValues
+ * @property-read EloquentCollection<int, ProductTranslation> $translations
  * @property-read EloquentCollection<int, OrderItem> $orderItems
  * @property-read EloquentCollection<int, WarehouseStock> $warehouseStocks
  */
@@ -288,6 +289,30 @@ class Product extends Model implements HasMedia
     public function optionValues(): BelongsToMany
     {
         return $this->belongsToMany(ProductOptionValue::class, 'product_option_value_product');
+    }
+
+    /**
+     * @return HasMany<ProductTranslation, $this>
+     */
+    public function translations(): HasMany
+    {
+        return $this->hasMany(ProductTranslation::class);
+    }
+
+    public function translation(?string $locale): ?ProductTranslation
+    {
+        if ($locale === null || $locale === '') {
+            return null;
+        }
+
+        if ($this->relationLoaded('translations')) {
+            /** @var ProductTranslation|null $match */
+            $match = $this->translations->firstWhere('locale', $locale);
+
+            return $match;
+        }
+
+        return $this->translations()->where('locale', $locale)->first();
     }
 
     /**

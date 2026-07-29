@@ -37,6 +37,13 @@ class UpdateChannelRequest extends FormRequest
             'is_active' => ['sometimes', 'boolean'],
             'is_default' => ['sometimes', 'boolean'],
             'config' => ['sometimes', 'nullable', 'array'],
+            'config.client_id' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'config.client_secret' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'config.refresh_token' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'config.access_token' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'config.access_token_expires_at' => ['sometimes', 'nullable', 'date'],
+            'config.marketplace_id' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'config.sandbox' => ['sometimes', 'boolean'],
             'notes' => ['nullable', 'string'],
         ];
     }

@@ -49,6 +49,7 @@ use App\Http\Controllers\Tenant\ProductController;
 use App\Http\Controllers\Tenant\ProductFamilyController;
 use App\Http\Controllers\Tenant\ProductMediaController;
 use App\Http\Controllers\Tenant\ProductRelationController;
+use App\Http\Controllers\Tenant\ProductTranslationController;
 use App\Http\Controllers\Tenant\ProductVariantController;
 use App\Http\Controllers\Tenant\PromotionController;
 use App\Http\Controllers\Tenant\PurchaseAgreementController;
@@ -287,6 +288,13 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
         ->names('tenant.categories');
 
     Route::middleware(['feature:features.erp.catalogue_advanced'])->group(function (): void {
+        Route::get('products/{product}/translations', [ProductTranslationController::class, 'index'])
+            ->name('tenant.products.translations.index');
+        Route::put('products/{product}/translations/{locale}', [ProductTranslationController::class, 'upsert'])
+            ->name('tenant.products.translations.upsert');
+        Route::delete('products/{product}/translations/{locale}', [ProductTranslationController::class, 'destroy'])
+            ->name('tenant.products.translations.destroy');
+
         Route::apiResource('brands', BrandController::class)
             ->names('tenant.brands');
 
@@ -599,8 +607,14 @@ Route::middleware(['auth:sanctum', 'throttle:tenant-api'])->group(function (): v
     });
 
     Route::middleware(['feature:features.erp.channels'])->group(function (): void {
+        Route::get('channels/oauth/{adapter}/callback', [ChannelController::class, 'oauthCallback'])
+            ->name('tenant.channels.oauth.callback');
+        Route::get('channels/{channel}/oauth/redirect', [ChannelController::class, 'oauthRedirect'])
+            ->name('tenant.channels.oauth.redirect');
         Route::post('channels/{channel}/sync-inventory', [ChannelController::class, 'syncInventory'])
             ->name('tenant.channels.sync-inventory');
+        Route::post('channels/{channel}/pull-orders', [ChannelController::class, 'pullOrders'])
+            ->name('tenant.channels.pull-orders');
         Route::post('channels/{channel}/publish-product', [ChannelController::class, 'publishProduct'])
             ->name('tenant.channels.publish-product');
         Route::apiResource('channels', ChannelController::class)

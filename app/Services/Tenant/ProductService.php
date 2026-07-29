@@ -124,6 +124,9 @@ final class ProductService
             'collections',
             'options.values',
             'variants',
+            'translations',
+            'productFamily',
+            'attributeSet',
         ]);
     }
 

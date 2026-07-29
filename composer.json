@@ -14,6 +14,8 @@
         "require": {
         "php": "^8.4",
         "dedoc/scramble": "^0.13.36",
+        "easypost/easypost-php": "^8.8",
+        "kreait/firebase-php": "^8.3",
         "laravel/framework": "^13.8",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
@@ -24,7 +26,8 @@
         "spatie/laravel-permission": "^8.3",
         "spatie/laravel-query-builder": "^7.3",
         "spatie/laravel-sluggable": "^4.0",
-        "stancl/tenancy": "dev-master#553f57a8adb62ff33e54c99281e7fafd516aab4f"
+        "stancl/tenancy": "dev-master#553f57a8adb62ff33e54c99281e7fafd516aab4f",
+        "twilio/sdk": "^8.11"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
